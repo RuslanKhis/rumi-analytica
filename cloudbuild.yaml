@@ -1,98 +1,12 @@
-# ./cloudbuild.yaml
-
+# Corrected cloudbuild.yaml
 steps:
-# --- BACKEND STEPS ---
-  # ... (Build and Push steps are unchanged) ...
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'Build Backend Image'
-    dir: 'backend'
-    waitFor: ['-']
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/rumi-analytica/backend:latest', '.']
-    if: '_SERVICE == "backend" || !defined(_SERVICE)'
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'Push Backend Image'
-    dir: 'backend'
-    waitFor: ['Build Backend Image']
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/rumi-analytica/backend:latest']
-    if: '_SERVICE == "backend" || !defined(_SERVICE)'
+  - name: 'bash'
+    args: ['./build-and-deploy.sh']
 
-  # Deploy backend to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: 'Deploy Backend'
-    dir: 'backend'
-    waitFor: ['Push Backend Image']
-    entrypoint: gcloud
-    args:
-      - 'run'
-      - 'deploy'
-      - 'rumi-analytica-backend'
-      - '--image'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/rumi-analytica/backend:latest'
-      - '--region'
-      - 'us-central1'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
-      - '--set-env-vars'
-      - 'SIMPLE_AUTH_USERNAME=${_SIMPLE_AUTH_USERNAME},FRONTEND_URL=${_FRONTEND_URL},GOOGLE_GENAI_USE_VERTEXAI=True,GOOGLE_CLOUD_PROJECT=${_GOOGLE_CLOUD_PROJECT},GOOGLE_CLOUD_LOCATION=${_GOOGLE_CLOUD_LOCATION}' 
-      - '--set-secrets'
-      - 'SIMPLE_AUTH_PASSWORD_HASH=RUMI_PASSWORD_HASH:latest,JWT_SECRET_KEY=RUMI_JWT_SECRET:latest'
-    if: '_SERVICE == "backend" || !defined(_SERVICE)'
+# Define the images that will be created by this build
+images:
+  - '${_GOOGLE_CLOUD_LOCATION}-docker.pkg.dev/${_GOOGLE_CLOUD_PROJECT}/rumi-analytica/${_SERVICE}:latest'
 
-# --- FRONTEND STEPS ---
-# ... (All frontend steps are unchanged) ...
-  - name: 'node:18'
-    id: 'Frontend NPM Install'
-    entrypoint: npm
-    dir: 'frontend'
-    waitFor: ['-']
-    args: ['ci']
-    if: '_SERVICE == "frontend" || !defined(_SERVICE)'
-  - name: 'node:18'
-    id: 'Frontend Build'
-    entrypoint: npm
-    dir: 'frontend'
-    waitFor: ['Frontend NPM Install']
-    args: ['run', 'build']
-    env: ['VITE_BACKEND_URL=${_BACKEND_URL}']
-    if: '_SERVICE == "frontend" || !defined(_SERVICE)'
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'Build Frontend Image'
-    dir: 'frontend'
-    waitFor: ['Frontend Build']
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/rumi-analytica/frontend:latest', '.']
-    if: '_SERVICE == "frontend" || !defined(_SERVICE)'
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'Push Frontend Image'
-    dir: 'frontend'
-    waitFor: ['Build Frontend Image']
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/rumi-analytica/frontend:latest']
-    if: '_SERVICE == "frontend" || !defined(_SERVICE)'
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: 'Deploy Frontend'
-    dir: 'frontend'
-    waitFor: ['Push Frontend Image']
-    entrypoint: gcloud
-    args:
-      - 'run'
-      - 'deploy'
-      - 'rumi-analytica-frontend'
-      - '--image'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/rumi-analytica/frontend:latest'
-      - '--region'
-      - 'us-central1'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
-    if: '_SERVICE == "frontend" || !defined(_SERVICE)'
-
-# ... (Substitutions and options are unchanged) ...
-substitutions:
-  _SERVICE: ''
-  _BACKEND_URL: ''
-  _FRONTEND_URL: ''
-  _SIMPLE_AUTH_USERNAME: ''
-  _GOOGLE_CLOUD_PROJECT: '' 
-  _GOOGLE_CLOUD_LOCATION: '' 
+# Increase the machine size to prevent timeouts during npm install or docker build
 options:
-  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
