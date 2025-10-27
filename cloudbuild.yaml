@@ -1,4 +1,4 @@
-# Corrected cloudbuild.yaml
+# Updated cloudbuild.yaml
 steps:
   - name: 'bash'
     args: ['./build-and-deploy.sh']
