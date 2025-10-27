@@ -80,6 +80,9 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$A
 print_info "Creating Service Account for Cloud Build..."
 gcloud iam service-accounts create "$BUILD_SA_NAME" --display-name="Rumi Analytica Builder SA" || print_info "Build Service Account already exists."
 
+print_info "Waiting for service account to propagate..."
+sleep 10
+
 print_info "Granting Cloud Build SA required roles (Cloud Run, Artifact Registry, IAM, Logging)..."
 gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$BUILD_SA_EMAIL" --role="roles/run.admin" --condition=None
 gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$BUILD_SA_EMAIL" --role="roles/artifactregistry.writer" --condition=None
