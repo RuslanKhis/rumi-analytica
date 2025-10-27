@@ -1,4 +1,7 @@
 # Updated cloudbuild.yaml
+options:
+  logging: CLOUD_LOGGING_ONLY
+  
 steps:
   - name: 'bash'
     args: ['./build-and-deploy.sh']
