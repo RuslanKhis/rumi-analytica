@@ -1,7 +1,8 @@
 # Updated cloudbuild.yaml
 
 steps:
-  - name: 'bash'
+  # Use the gcloud builder which includes bash, docker, and gcloud CLI
+  - name: 'gcr.io/cloud-builders/gcloud'
     args: ['./build-and-deploy.sh']
 
 # Define the images that will be created by this build
