@@ -21,7 +21,6 @@ from agents.agent.agent import root_agent as agent
 # --- Load Environment Variables ---
 load_dotenv()
 
-# --- UPDATED AUTHENTICATION LOGIC ---
 # Check if we are using Vertex AI via service account
 USE_VERTEX_AI = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "false").lower() == "true"
 
@@ -64,7 +63,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ... (The rest of the file remains the same) ...
 # --- Create a shared session service instance ---
 session_service = InMemorySessionService()
 AGENT_APP_NAME = "agent"
@@ -111,7 +109,6 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     access_token = create_access_token(data={"sub": form_data.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-# --- REVISED CHAT LOGIC USING THE RUNNER PATTERN ---
 @router.post("/api/chat", response_model=SimpleChatResponse)
 async def simple_chat(
     chat_request: SimpleChatRequest,
