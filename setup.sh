@@ -141,6 +141,7 @@ docker push "$FRONTEND_IMAGE_TAG"
 
 gcloud run deploy "rumi-analytica-frontend" \
     --image="$FRONTEND_IMAGE_TAG" \
+    --service-account="$APP_SA_EMAIL" \
     --region="$REGION" \
     --platform="managed" \
     --allow-unauthenticated \

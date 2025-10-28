@@ -32,6 +32,7 @@ steps:
           echo "Skipping backend push: _SERVICE='$_SERVICE'"
         fi
 
+
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'Deploy Backend'
     dir: 'backend'
@@ -47,6 +48,7 @@ steps:
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
+            --service-account "rumi-app-runner-sa@${PROJECT_ID}.iam.gserviceaccount.com" \ 
             --set-env-vars "SIMPLE_AUTH_USERNAME=${_SIMPLE_AUTH_USERNAME},FRONTEND_URL=${_FRONTEND_URL},GOOGLE_GENAI_USE_VERTEXAI=True,GOOGLE_CLOUD_PROJECT=${_GOOGLE_CLOUD_PROJECT},GOOGLE_CLOUD_LOCATION=${_GOOGLE_CLOUD_LOCATION}" \
             --set-secrets "SIMPLE_AUTH_PASSWORD_HASH=RUMI_PASSWORD_HASH:latest,JWT_SECRET_KEY=RUMI_JWT_SECRET:latest"
         else
@@ -129,7 +131,8 @@ steps:
             --image us-central1-docker.pkg.dev/$PROJECT_ID/rumi-analytica/frontend:latest \
             --region us-central1 \
             --platform managed \
-            --allow-unauthenticated
+            --allow-unauthenticated \
+            --service-account "rumi-app-runner-sa@${PROJECT_ID}.iam.gserviceaccount.com" 
         else
           echo "Skipping frontend deploy: _SERVICE='$_SERVICE'"
         fi
