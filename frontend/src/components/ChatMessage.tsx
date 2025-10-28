@@ -1,12 +1,33 @@
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import unicornDefault from "@/assets/unicorn-default.png";
+import unicornQuestion from "@/assets/unicorn-question.png";
+import agentListening from "@/assets/agent-listening.png";
+import agentThinking from "@/assets/agent-thinking.png";
+import agentResponding from "@/assets/agent-responding.png";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
   content: string;
+  agentState?: "listening" | "thinking" | "responding";
 }
 
-export const ChatMessage = ({ role, content }: ChatMessageProps) => {
+export const ChatMessage = ({ role, content, agentState = "responding" }: ChatMessageProps) => {
   const isUser = role === "user";
+  
+  const getAgentAvatar = () => {
+    switch (agentState) {
+      case "listening":
+        return agentListening;
+      case "thinking":
+        return agentThinking;
+      case "responding":
+        return agentResponding;
+      default:
+        return agentResponding;
+    }
+  };
 
   return (
     <div
@@ -16,23 +37,56 @@ export const ChatMessage = ({ role, content }: ChatMessageProps) => {
       )}
     >
       {!isUser && (
-        <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold text-sm shadow-md">
-          R
+        <div className="flex flex-col items-center gap-1">
+          <img 
+            src={getAgentAvatar()} 
+            alt="Rumi" 
+            className="w-12 h-12 rounded-full object-cover shadow-md"
+          />
+          <span className="text-[10px] font-medium text-muted-foreground">Rumi</span>
         </div>
       )}
       <div
         className={cn(
-          "max-w-[75%] rounded-3xl px-5 py-3.5 transition-all duration-300",
+          "max-w-[75%] rounded-3xl px-5 py-3.5 transition-all duration-300 backdrop-blur-sm",
           isUser
-            ? "bg-primary text-primary-foreground shadow-[0_2px_8px_rgba(33,_150,_243,_0.2)]"
-            : "bg-card text-card-foreground shadow-[0_2px_8px_rgba(0,_0,_0,_0.06)]"
+            ? "bg-primary text-primary-foreground shadow-[0_2px_12px_rgba(33,_150,_243,_0.25)] hover:shadow-[0_4px_16px_rgba(33,_150,_243,_0.3)]"
+            : "bg-card text-card-foreground shadow-[0_2px_12px_rgba(0,_0,_0,_0.08)] hover:shadow-[0_4px_16px_rgba(0,_0,_0,_0.12)]"
         )}
       >
-        <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{content}</p>
+        {isUser ? (
+          <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{content}</p>
+        ) : (
+          <div className="text-[15px] leading-relaxed prose prose-sm max-w-none dark:prose-invert 
+            prose-p:my-3 prose-p:leading-7
+            prose-headings:font-semibold prose-headings:text-foreground
+            prose-h1:text-2xl prose-h1:mt-6 prose-h1:mb-4
+            prose-h2:text-xl prose-h2:mt-5 prose-h2:mb-3
+            prose-h3:text-lg prose-h3:mt-4 prose-h3:mb-2
+            prose-strong:text-foreground prose-strong:font-semibold
+            prose-code:bg-muted/80 prose-code:text-foreground prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-[''] prose-code:after:content-['']
+            prose-pre:bg-muted/60 prose-pre:border prose-pre:border-border prose-pre:p-4 prose-pre:rounded-xl prose-pre:my-4 prose-pre:shadow-sm
+            prose-pre:code:bg-transparent prose-pre:code:p-0 prose-pre:code:text-foreground
+            prose-ul:my-3 prose-ul:list-disc prose-ul:pl-6
+            prose-ol:my-3 prose-ol:list-decimal prose-ol:pl-6
+            prose-li:my-1.5 prose-li:leading-7
+            prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:my-4
+            prose-a:text-primary prose-a:underline prose-a:font-medium hover:prose-a:text-primary/80
+            ">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {content}
+            </ReactMarkdown>
+          </div>
+        )}
       </div>
       {isUser && (
-        <div className="flex-shrink-0 w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-semibold text-sm shadow-md">
-          U
+        <div className="flex flex-col items-center gap-1">
+          <img 
+            src={unicornQuestion} 
+            alt="Unicorn User" 
+            className="w-12 h-12 rounded-full object-cover shadow-md"
+          />
+          <span className="text-[10px] font-medium text-muted-foreground">Unicorn User</span>
         </div>
       )}
     </div>

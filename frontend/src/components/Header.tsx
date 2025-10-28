@@ -14,29 +14,27 @@ export const Header = () => {
   };
 
   return (
-    <header className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-50 shadow-[0_1px_3px_rgba(0,_0,_0,_0.05)]">
-      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <img src={rumiLogo} alt="Rumi-Analytica Logo" className="h-11 w-auto" />
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight text-foreground">
-              Rumi-Analytica
-            </h1>
-            <p className="text-xs text-muted-foreground font-medium">
-              Rumi's Unicorn Makes Insights
-            </p>
-          </div>
+    <header className="border-b border-border/40 backdrop-blur-xl bg-background/80 sticky top-0 z-50 shadow-sm transition-all duration-300">
+      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-3 group cursor-pointer">
+          <img 
+            src={rumiLogo} 
+            alt="Rumi Logo" 
+            className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110" 
+          />
+          <h1 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+            Rumi's Unicorn Makes Insights
+          </h1>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center gap-2.5 px-4 py-2 rounded-full bg-muted">
-            <BarChart3 className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">{username}</span>
+        <div className="flex items-center gap-3">
+          <div className="px-4 py-2 rounded-full bg-secondary/50 backdrop-blur-sm text-sm font-medium text-secondary-foreground shadow-sm hover:shadow-md transition-all duration-300 hover:bg-secondary/60">
+            {username || "User"}
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleLogout}
-            className="rounded-full hover:bg-muted"
+            className="rounded-full hover:bg-destructive/10 hover:text-destructive transition-all duration-300 hover:scale-105"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Logout

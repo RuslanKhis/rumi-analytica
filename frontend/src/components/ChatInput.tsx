@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
+import unicornTyping from "@/assets/unicorn-typing.png";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -9,13 +10,15 @@ interface ChatInputProps {
 }
 
 export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
-  const [message, setMessage] = useState("");
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSend(message.trim());
-      setMessage("");
+    if (input.trim() && !disabled) {
+      onSend(input.trim());
+      setInput("");
+      setIsTyping(false);
     }
   };
 
@@ -26,27 +29,44 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    setIsTyping(e.target.value.length > 0);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="flex gap-3 items-end">
-      <div className="flex-1 relative">
-        <Textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask Rumi about your analytics data and more ..."
-          disabled={disabled}
-          className="min-h-[56px] max-h-[200px] resize-none rounded-[20px] border-border/60 bg-card shadow-[0_2px_8px_rgba(0,_0,_0,_0.06)] focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-all px-5 py-4 text-[15px]"
-          rows={1}
-        />
+    <form onSubmit={handleSubmit} className="p-6 border-t border-border/40 bg-background/50 backdrop-blur-xl">
+      <div className="container mx-auto max-w-4xl">
+        <div className="flex gap-3 items-end">
+          {isTyping && !disabled && (
+            <div className="flex flex-col items-center gap-1 animate-in fade-in-50 slide-in-from-left-2">
+              <img 
+                src={unicornTyping} 
+                alt="Typing" 
+                className="w-12 h-12 rounded-full object-cover shadow-md"
+              />
+              <span className="text-[10px] font-medium text-muted-foreground">Typing...</span>
+            </div>
+          )}
+          <Textarea
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask me anything..."
+            disabled={disabled}
+            className="min-h-[52px] max-h-[200px] resize-none rounded-[20px] px-5 py-3.5 text-[15px] shadow-sm border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:shadow-md"
+            rows={1}
+          />
+          <Button
+            type="submit"
+            disabled={!input.trim() || disabled}
+            size="icon"
+            className="h-[52px] w-[52px] rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 bg-primary hover:bg-primary/90"
+          >
+            <Send className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
-      <Button
-        type="submit"
-        size="icon"
-        disabled={!message.trim() || disabled}
-        className="h-[56px] w-[56px] flex-shrink-0 rounded-full shadow-[0_4px_12px_rgba(33,_150,_243,_0.3)] hover:shadow-[0_6px_16px_rgba(33,_150,_243,_0.4)] transition-all"
-      >
-        <Send className="h-5 w-5" />
-      </Button>
     </form>
   );
 };

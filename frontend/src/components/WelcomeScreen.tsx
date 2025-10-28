@@ -1,4 +1,5 @@
 import { MessageSquare, TrendingUp, Zap, Brain } from "lucide-react";
+import agentListening from "@/assets/agent-listening.png";
 
 const features = [
   {
@@ -28,6 +29,16 @@ export const WelcomeScreen = () => {
     <div className="flex flex-col items-center justify-center min-h-[65vh] px-6 text-center animate-in fade-in-50 duration-700">
       <div className="max-w-4xl mx-auto space-y-12">
         <div className="space-y-6">
+          <div className="flex justify-center mb-8 animate-in zoom-in-50 duration-700">
+            <div className="flex flex-col items-center gap-3">
+              <img 
+                src={agentListening} 
+                alt="Rumi listening" 
+                className="w-24 h-24 rounded-full object-cover shadow-lg"
+              />
+              <span className="text-sm font-medium text-muted-foreground">Rumi is listening...</span>
+            </div>
+          </div>
           <h2 className="text-5xl md:text-6xl font-semibold tracking-tight text-foreground animate-in slide-in-from-bottom-4 duration-700">
             Welcome to Rumi-Analytica
           </h2>

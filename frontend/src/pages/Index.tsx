@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendChatMessage } from "@/lib/api";
+import agentThinking from "@/assets/agent-thinking.png";
 
 interface Message {
   role: "user" | "assistant";
@@ -78,8 +79,13 @@ const Index = () => {
                 ))}
                 {isLoading && (
                   <div className="flex justify-start gap-4 py-4 px-2 animate-in fade-in-50">
-                    <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold text-sm shadow-md">
-                      R
+                    <div className="flex flex-col items-center gap-1">
+                      <img 
+                        src={agentThinking} 
+                        alt="Rumi thinking" 
+                        className="w-12 h-12 rounded-full object-cover shadow-md"
+                      />
+                      <span className="text-[10px] font-medium text-muted-foreground">Rumi</span>
                     </div>
                     <div className="bg-card shadow-[0_2px_8px_rgba(0,_0,_0,_0.06)] rounded-3xl px-5 py-3.5">
                       <div className="flex gap-1.5">
@@ -95,10 +101,8 @@ const Index = () => {
           </div>
         </ScrollArea>
 
-        <div className="border-t border-border/50 bg-card/80 backdrop-blur-xl shadow-[0_-1px_3px_rgba(0,_0,_0,_0.05)]">
-          <div className="container mx-auto px-6 py-5 max-w-4xl">
-            <ChatInput onSend={handleSendMessage} disabled={isLoading} />
-          </div>
+        <div className="border-t border-border/40 bg-background/50 backdrop-blur-xl shadow-[0_-1px_3px_rgba(0,_0,_0,_0.05)]">
+          <ChatInput onSend={handleSendMessage} disabled={isLoading} />
         </div>
       </div>
     </div>
