@@ -167,7 +167,7 @@ gcloud builds triggers create github \
     --included-files="backend/**,frontend/**" \
     --substitutions="_BACKEND_URL=${BACKEND_URL},_FRONTEND_URL=${FRONTEND_URL},_SIMPLE_AUTH_USERNAME=${SIMPLE_AUTH_USERNAME},_GOOGLE_CLOUD_PROJECT=${PROJECT_ID},_GOOGLE_CLOUD_LOCATION=${REGION}"
 
-    
+
 # --- 9. FINAL OUTPUT ---
 echo "------------------------------------------------------------------"
 print_success "Setup Complete!"
@@ -176,10 +176,8 @@ echo -e "Your application is deployed and available at:"
 echo -e "Frontend: ${YELLOW}${FRONTEND_URL}${NC}"
 echo -e "Backend:  ${YELLOW}${BACKEND_URL}${NC}"
 echo ""
-print_info "Two CI/CD triggers have been created in Cloud Build:"
-echo "  - 'deploy-rumi-frontend-main': Triggers on pushes to 'frontend/**' in the main branch."
-echo "  - 'deploy-rumi-backend-main': Triggers on pushes to 'backend/**' in the main branch."
-echo ""
+print_info "A unified CI/CD trigger has been created in Cloud Build:"
+echo "  - 'deploy-rumi-analytica-main': Triggers on pushes to 'frontend/**' or 'backend/**' in the main branch."
 print_info "To change the password in the future, you must update the 'RUMI_PASSWORD_HASH' secret in Secret Manager."
 print_info "You will need to generate a new bcrypt hash of your new password and use it to create a new version of the secret."
 echo "------------------------------------------------------------------"
