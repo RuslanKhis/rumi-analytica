@@ -40,7 +40,7 @@ ALGORITHM = "HS256"
 if not all([JWT_SECRET_KEY, SIMPLE_AUTH_USERNAME, SIMPLE_AUTH_PASSWORD_HASH]):
     print("❌ Auth env vars are not set. Exiting.", file=sys.stderr); sys.exit(1)
 
-# --- FastAPI App and Router Setup ---
+# --- FastAPI App and Router Setup (test change) ---
 app = FastAPI(title="Rumi-Analytica Backend")
 router = APIRouter()
 
