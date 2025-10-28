@@ -1,4 +1,4 @@
-# cloudbuild.yaml (Unified Pipeline)
+# cloudbuild.yaml (Corrected Unified Pipeline)
 
 steps:
 # --- BACKEND STEPS ---
@@ -15,6 +15,7 @@ steps:
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'Deploy Backend'
+    entrypoint: 'gcloud' # <-- FIX: Specify the entrypoint
     dir: 'backend'
     waitFor: ['Push Backend Image']
     args:
@@ -40,7 +41,7 @@ steps:
     id: 'Frontend NPM Install'
     entrypoint: 'npm'
     dir: 'frontend'
-    waitFor: ['Deploy Backend'] # Start frontend steps after backend is deployed
+    waitFor: ['Deploy Backend']
     args: ['ci']
 
   - name: 'node:18'
@@ -65,6 +66,7 @@ steps:
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'Deploy Frontend'
+    entrypoint: 'gcloud' # <-- FIX: Specify the entrypoint
     dir: 'frontend'
     waitFor: ['Push Frontend Image']
     args:
@@ -81,7 +83,6 @@ steps:
       - '--service-account'
       - 'rumi-app-runner-sa@${PROJECT_ID}.iam.gserviceaccount.com'
 
-# Substitutions are now defined in the trigger itself
 substitutions:
   _BACKEND_URL: ''
   _FRONTEND_URL: ''
