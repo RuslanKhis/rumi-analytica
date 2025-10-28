@@ -33,7 +33,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask Rumi about your analytics data and much more ..."
+          placeholder="Ask Rumi about your analytics data and more ..."
           disabled={disabled}
           className="min-h-[56px] max-h-[200px] resize-none rounded-[20px] border-border/60 bg-card shadow-[0_2px_8px_rgba(0,_0,_0,_0.06)] focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-all px-5 py-4 text-[15px]"
           rows={1}
