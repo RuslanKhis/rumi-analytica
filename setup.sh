@@ -154,30 +154,20 @@ print_info "[3/3] Updating backend with frontend URL for CORS..."
 gcloud run services update "rumi-analytica-backend" --region="$REGION" --update-env-vars="FRONTEND_URL=${FRONTEND_URL}"
 print_success "Backend updated."
 
-# --- 8. CREATE CLOUD BUILD TRIGGERS ---
-print_info "Creating Cloud Build triggers (assuming GitHub connection is already established)..."
+# --- 8. CREATE CLOUD BUILD TRIGGER ---
+print_info "Creating unified Cloud Build trigger (assuming GitHub connection is already established)..."
 gcloud builds triggers create github \
-    --name="deploy-rumi-backend-main" \
+    --name="deploy-rumi-analytica-main" \
     --region="$REGION" \
     --repo-owner="$GITHUB_USER" \
     --repo-name="$GITHUB_REPO" \
     --branch-pattern="^main$" \
     --build-config="cloudbuild.yaml" \
     --service-account="projects/${PROJECT_ID}/serviceAccounts/${BUILD_SA_EMAIL}" \
-    --included-files="backend/**" \
-    --substitutions="_SERVICE=backend,_BACKEND_URL=${BACKEND_URL},_FRONTEND_URL=${FRONTEND_URL},_SIMPLE_AUTH_USERNAME=${SIMPLE_AUTH_USERNAME},_GOOGLE_CLOUD_PROJECT=${PROJECT_ID},_GOOGLE_CLOUD_LOCATION=${REGION}"
+    --included-files="backend/**,frontend/**" \
+    --substitutions="_BACKEND_URL=${BACKEND_URL},_FRONTEND_URL=${FRONTEND_URL},_SIMPLE_AUTH_USERNAME=${SIMPLE_AUTH_USERNAME},_GOOGLE_CLOUD_PROJECT=${PROJECT_ID},_GOOGLE_CLOUD_LOCATION=${REGION}"
 
-gcloud builds triggers create github \
-    --name="deploy-rumi-frontend-main" \
-    --region="$REGION" \
-    --repo-owner="$GITHUB_USER" \
-    --repo-name="$GITHUB_REPO" \
-    --branch-pattern="^main$" \
-    --build-config="cloudbuild.yaml" \
-    --service-account="projects/${PROJECT_ID}/serviceAccounts/${BUILD_SA_EMAIL}" \
-    --included-files="frontend/**" \
-    --substitutions="_SERVICE=frontend,_BACKEND_URL=${BACKEND_URL},_FRONTEND_URL=${FRONTEND_URL}"
-
+    
 # --- 9. FINAL OUTPUT ---
 echo "------------------------------------------------------------------"
 print_success "Setup Complete!"
