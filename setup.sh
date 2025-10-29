@@ -41,6 +41,16 @@ read SIMPLE_AUTH_USERNAME
 print_prompt "Enter a password for the backend's simple auth: "
 read -s SIMPLE_AUTH_PASSWORD
 echo ""
+print_info "Enter BigQuery Configuration:"
+print_prompt "Enter the Project ID where your BigQuery DATA is located: "
+read BQ_DATA_PROJECT_ID
+print_prompt "Enter the BigQuery Dataset ID to be queried: "
+read BQ_DATASET_ID
+# Suggest the main project ID as a default for the compute project
+print_prompt "Enter the Project ID to use for BigQuery COMPUTE/JOBS (Press Enter to use '$PROJECT_ID'): "
+read BQ_COMPUTE_PROJECT_ID
+# If the user just presses enter, use the main project ID
+BQ_COMPUTE_PROJECT_ID=${BQ_COMPUTE_PROJECT_ID:-$PROJECT_ID}
 
 echo "------------------------------------------------------------------"
 print_info "Configuration Summary:"
@@ -49,6 +59,9 @@ echo "Region:               $REGION"
 echo "GitHub User:          $GITHUB_USER"
 echo "GitHub Repo:          $GITHUB_REPO"
 echo "Auth Username:        $SIMPLE_AUTH_USERNAME"
+echo "BQ Data Project:      $BQ_DATA_PROJECT_ID"
+echo "BQ Dataset ID:        $BQ_DATASET_ID"
+echo "BQ Compute Project:   $BQ_COMPUTE_PROJECT_ID"
 echo "------------------------------------------------------------------"
 print_prompt "Is this correct? [y/N] "
 read confirm
@@ -128,7 +141,7 @@ gcloud run deploy "rumi-analytica-backend" \
     --platform="managed" \
     --allow-unauthenticated \
     --port="8080" \
-    --set-env-vars="SIMPLE_AUTH_USERNAME=${SIMPLE_AUTH_USERNAME},GOOGLE_GENAI_USE_VERTEXAI=True,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION}" \
+    --set-env-vars="SIMPLE_AUTH_USERNAME=${SIMPLE_AUTH_USERNAME},GOOGLE_GENAI_USE_VERTEXAI=True,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION},BQ_DATA_PROJECT_ID=${BQ_DATA_PROJECT_ID},BQ_DATASET_ID=${BQ_DATASET_ID},BQ_COMPUTE_PROJECT_ID=${BQ_COMPUTE_PROJECT_ID}" \
     --set-secrets="SIMPLE_AUTH_PASSWORD_HASH=RUMI_PASSWORD_HASH:latest,JWT_SECRET_KEY=RUMI_JWT_SECRET:latest"
 
 BACKEND_URL=$(gcloud run services describe "rumi-analytica-backend" --region="$REGION" --format='value(status.url)')
@@ -165,7 +178,7 @@ gcloud builds triggers create github \
     --build-config="cloudbuild.yaml" \
     --service-account="projects/${PROJECT_ID}/serviceAccounts/${BUILD_SA_EMAIL}" \
     --included-files="backend/**,frontend/**" \
-    --substitutions="_BACKEND_URL=${BACKEND_URL},_FRONTEND_URL=${FRONTEND_URL},_SIMPLE_AUTH_USERNAME=${SIMPLE_AUTH_USERNAME},_GOOGLE_CLOUD_PROJECT=${PROJECT_ID},_GOOGLE_CLOUD_LOCATION=${REGION}"
+    --substitutions="_BACKEND_URL=${BACKEND_URL},_FRONTEND_URL=${FRONTEND_URL},_SIMPLE_AUTH_USERNAME=${SIMPLE_AUTH_USERNAME},_GOOGLE_CLOUD_PROJECT=${PROJECT_ID},_GOOGLE_CLOUD_LOCATION=${REGION},_BQ_DATA_PROJECT_ID=${BQ_DATA_PROJECT_ID},_BQ_DATASET_ID=${BQ_DATASET_ID},_BQ_COMPUTE_PROJECT_ID=${BQ_COMPUTE_PROJECT_ID}"
 
 
 # --- 9. FINAL OUTPUT ---

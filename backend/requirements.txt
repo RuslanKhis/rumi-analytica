@@ -20,3 +20,5 @@ google-generativeai
 # Extra for form data
 python-multipart
 ag_ui_adk
+pandas
+numpy
