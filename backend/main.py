@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai.types import Content, Part
+from google.adk.artifacts import InMemoryArtifactService
 
 # --- Your existing ADK agent definition ---
 from agents.agent.agent import root_agent as agent
@@ -65,6 +66,7 @@ app.add_middleware(
 
 # --- Create a shared session service instance ---
 session_service = InMemorySessionService()
+artifact_service = InMemoryArtifactService()
 AGENT_APP_NAME = "agent"
 
 # --- Authentication Helpers ---
@@ -130,7 +132,8 @@ async def simple_chat(
     runner = Runner(
         agent=agent,
         session_service=session_service,
-        app_name=AGENT_APP_NAME
+        app_name=AGENT_APP_NAME,
+        artifact_service=artifact_service
     )
 
     adk_message = Content(role="user", parts=[Part(text=chat_request.message)])

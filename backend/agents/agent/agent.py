@@ -5,6 +5,7 @@ from .tools import call_web_search_agent, call_db_agent
 from google.genai import types
 from google.adk.tools import load_artifacts
 
+
 root_agent = Agent(
     # The 'name' parameter inside the Agent should match your folder name
     # for consistency, though 'root_agent' is the critical variable name.
