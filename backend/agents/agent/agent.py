@@ -1,12 +1,9 @@
 import os
 from google.adk.agents import Agent
-
-ANALYTICS_INSTRUCTIONS = """
-You are a world-class data analyst. 
-Your goal is to help users by answering their questions about data.
-To do this, you will write and execute Python code using the provided code executor tool.
-Analyze the user's request, write the necessary code, and then interpret the results to provide a clear, natural language answer.
-"""
+from .prompts import return_root_agent_prompt
+from .tools import call_web_search_agent
+from google.genai import types
+from google.adk.tools import load_artifacts
 
 root_agent = Agent(
     # The 'name' parameter inside the Agent should match your folder name
@@ -17,6 +14,9 @@ root_agent = Agent(
     model=os.getenv("ANALYTICS_AGENT_MODEL", "gemini-2.5-flash"),
 
     # Keep complex instructions in a separate file or function for cleanliness.
-    instruction=ANALYTICS_INSTRUCTIONS,
+    instruction=return_root_agent_prompt(),
+    global_instruction=f"You are Rumi and analytics agent that helps users analyze data and generate insights and act upon them",
     description="An agent for performing data analysis by writing and executing Python code.", 
+    tools=[call_web_search_agent],
+    generate_content_config=types.GenerateContentConfig(temperature=0.1),
 )
