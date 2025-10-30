@@ -4,10 +4,31 @@ from google.adk.tools import ToolContext
 import sys
 from .sub_agents.web_search_agent.agent import web_search_agent
 from .sub_agents.bigquery_agent.agent import database_agent
+from .sub_agents.data_science_agent.agent import data_science_agent
+
+async def call_data_science_agent(question: str, tool_context: ToolContext) -> str:
+    """ Calls the data science agent Ginger to answer data analysis and visualization questions. 
+    
+    Args: question: The user's question for the data science agent.
+          tool_context: Shared context for state management.
+    """
+    try: 
+        agent_tool = AgentTool(agent=data_science_agent)
+        output = await agent_tool.run_async(
+            args={"request": question},
+            tool_context=tool_context
+        )
+        if output is None: 
+            return "No response from data science agent."
+        return str(output)
+    except Exception as e: 
+        error_msg = f"Error calling data science agent: {str(e)}"
+        print(f"[ERROR] {error_msg}", file=sys.stderr)
+        return error_msg
 
 async def call_web_search_agent(question: str, tool_context: ToolContext) -> str:
     """ Calls the web search agent Meruferat to answer the questions requiring internet access for current events or general knowledge. 
-    
+
     Args: question: The user's question for the web search agent.
           tool_context: Shared context for state management.
     """
