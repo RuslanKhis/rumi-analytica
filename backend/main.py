@@ -166,7 +166,7 @@ async def simple_chat(
                     app_name=AGENT_APP_NAME,
                     user_id=user_id,
                     session_id=session.id,
-                    key=filename,
+                    filename=filename,
                     version=version
                 )
                 
