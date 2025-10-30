@@ -2,6 +2,9 @@
 ![Logo](/images/rumi-analytica-logo.png)
 Multi-agent analytics platform powered by Gemini and deployed on Cloud Run.
 
+TODO:
++ need to provide discovery Engine Viewer to service account & enable  Cloud Resource Manager API  on the project
+
 ## Deployment Guide
 
 Follow these steps to deploy the application to your own Google Cloud project.
