@@ -6,6 +6,27 @@ from .sub_agents.web_search_agent.agent import web_search_agent
 from .sub_agents.bigquery_agent.agent import database_agent
 from .sub_agents.data_science_agent.agent import data_science_agent
 from .sub_agents.document_agent.agent import document_agent
+from .sub_agents.econometrics_agent.agent import econometrics_agent
+
+async def call_econometrics_agent(question: str, tool_context: ToolContext) -> str:
+    """ Calls the econometrics agent Persephone to answer econometrics-related questions. 
+    
+    Args: question: The user's question for the econometrics agent.
+          tool_context: Shared context for state management.
+    """
+    try: 
+        agent_tool = AgentTool(agent=econometrics_agent)
+        output = await agent_tool.run_async(
+            args={"request": question},
+            tool_context=tool_context
+        )
+        if output is None: 
+            return "No response from econometrics agent."
+        return str(output)
+    except Exception as e: 
+        error_msg = f"Error calling econometrics agent: {str(e)}"
+        print(f"[ERROR] {error_msg}", file=sys.stderr)
+        return error_msg
 
 async def call_document_agent(question: str, tool_context: ToolContext) -> str:
     """ Calls the document agent Candy to answer questions based on specific book chapters. 
