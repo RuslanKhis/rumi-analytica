@@ -1,5 +1,5 @@
 from google.adk.agents import Agent
-from google.adk.tools import VertexAiCodeExecutor
+from google.adk.code_executors import VertexAiCodeExecutor
 import os
 from .prompts import return_econometrics_agent_prompt
 
