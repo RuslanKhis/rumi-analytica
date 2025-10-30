@@ -5,6 +5,27 @@ import sys
 from .sub_agents.web_search_agent.agent import web_search_agent
 from .sub_agents.bigquery_agent.agent import database_agent
 from .sub_agents.data_science_agent.agent import data_science_agent
+from .sub_agents.document_agent.agent import document_agent
+
+async def call_document_agent(question: str, tool_context: ToolContext) -> str:
+    """ Calls the document agent Candy to answer questions based on specific book chapters. 
+    
+    Args: question: The user's question for the document agent.
+          tool_context: Shared context for state management.
+    """
+    try: 
+        agent_tool = AgentTool(agent=document_agent)
+        output = await agent_tool.run_async(
+            args={"request": question},
+            tool_context=tool_context
+        )
+        if output is None: 
+            return "No response from document agent."
+        return str(output)
+    except Exception as e: 
+        error_msg = f"Error calling document agent: {str(e)}"
+        print(f"[ERROR] {error_msg}", file=sys.stderr)
+        return error_msg
 
 async def call_data_science_agent(question: str, tool_context: ToolContext) -> str:
     """ Calls the data science agent Ginger to answer data analysis and visualization questions. 
