@@ -13,6 +13,8 @@ import agentThinking from "@/assets/agent-thinking.png";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  imageData?: string | null;
+  imageMimeType?: string | null;
 }
 
 const Index = () => {
@@ -28,11 +30,13 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      const { response } = await sendChatMessage(content);
+      const data = await sendChatMessage(content);
 
       const assistantMessage: Message = {
         role: "assistant",
-        content: response,
+        content: data.response || "",
+        imageData: data.image_data,
+        imageMimeType: data.image_mime_type
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -75,6 +79,9 @@ const Index = () => {
                     key={index}
                     role={message.role}
                     content={message.content}
+                    imageData={message.imageData}
+                    imageMimeType={message.imageMimeType}
+                    agentState={index === messages.length - 1 && message.role === "assistant" ? "responding" : undefined}
                   />
                 ))}
                 {isLoading && (
@@ -83,9 +90,9 @@ const Index = () => {
                       <img 
                         src={agentThinking} 
                         alt="Rumi thinking" 
-                        className="w-12 h-12 rounded-full object-cover shadow-md"
+                        className="w-16 h-16 rounded-full object-cover shadow-md"
                       />
-                      <span className="text-[10px] font-medium text-muted-foreground">Rumi</span>
+                      <span className="text-[11px] font-medium text-muted-foreground">Rumi</span>
                     </div>
                     <div className="bg-card shadow-[0_2px_8px_rgba(0,_0,_0,_0.06)] rounded-3xl px-5 py-3.5">
                       <div className="flex gap-1.5">

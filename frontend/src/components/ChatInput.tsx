@@ -43,9 +43,9 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
               <img 
                 src={unicornTyping} 
                 alt="Typing" 
-                className="w-12 h-12 rounded-full object-cover shadow-md"
+                className="w-16 h-16 rounded-full object-cover shadow-md"
               />
-              <span className="text-[10px] font-medium text-muted-foreground">Typing...</span>
+              <span className="text-[11px] font-medium text-muted-foreground">Typing...</span>
             </div>
           )}
           <Textarea

@@ -23,7 +23,7 @@ export const Header = () => {
             className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110" 
           />
           <h1 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-            Rumi's Unicorn Makes Insights
+            Rumi
           </h1>
         </div>
         <div className="flex items-center gap-3">

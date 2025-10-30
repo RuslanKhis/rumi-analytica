@@ -1,7 +1,8 @@
 import os
 import sys
+import base64  # <-- MODIFIED: Added for encoding image data
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated, Optional  # <-- MODIFIED: Added Optional
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, status, APIRouter
@@ -41,7 +42,7 @@ ALGORITHM = "HS256"
 if not all([JWT_SECRET_KEY, SIMPLE_AUTH_USERNAME, SIMPLE_AUTH_PASSWORD_HASH]):
     print("❌ Auth env vars are not set. Exiting.", file=sys.stderr); sys.exit(1)
 
-# --- FastAPI App and Router Setup (test change) ---
+# --- FastAPI App and Router Setup ---
 app = FastAPI(title="Rumi-Analytica Backend")
 router = APIRouter()
 
@@ -100,10 +101,14 @@ class TokenResponse(BaseModel):
 class SimpleChatRequest(BaseModel):
     message: str
 
-class SimpleChatResponse(BaseModel):
-    response: str
+# Response model updated to include optional image data
+class ChatApiResponse(BaseModel):
+    response: Optional[str] = None
+    image_data: Optional[str] = None  # Base64 encoded image string
+    image_mime_type: Optional[str] = None
 
 # --- API Routes ---
+# Token endpoint
 @router.post("/token", response_model=TokenResponse)
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     if (form_data.username != SIMPLE_AUTH_USERNAME or not verify_password(form_data.password, SIMPLE_AUTH_PASSWORD_HASH)):
@@ -111,7 +116,9 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     access_token = create_access_token(data={"sub": form_data.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/api/chat", response_model=SimpleChatResponse)
+
+# Chat endpoint updated to handle image artifacts
+@router.post("/api/chat", response_model=ChatApiResponse)
 async def simple_chat(
     chat_request: SimpleChatRequest,
     current_user: dict = Depends(get_current_user)
@@ -137,25 +144,56 @@ async def simple_chat(
     )
 
     adk_message = Content(role="user", parts=[Part(text=chat_request.message)])
-    response_text = ""
+    
+    # Variables to store results from the agent run
+    response_text: str | None = None
+    image_data_b64: str | None = None
+    image_mime_type: str | None = None
+
     try:
         async for event in runner.run_async(
             user_id=user_id,
             session_id=session.id,
             new_message=adk_message
         ):
-            if event.is_final_response():
-                response_text = event.content.parts[0].text
-                break
+            # 1. Check for new artifacts (like images/plots)
+            if event.actions and event.actions.artifact_delta:
+                # Get the filename and version from the event
+                filename, version = next(iter(event.actions.artifact_delta.items()))
+                
+                # Load the artifact using the shared service instance
+                artifact = await artifact_service.load_artifact(
+                    app_name=AGENT_APP_NAME,
+                    user_id=user_id,
+                    session_id=session.id,
+                    key=filename,
+                    version=version
+                )
+                
+                if artifact and artifact.inline_data:
+                    # Encode binary data to a base64 string for JSON transport
+                    image_data_b64 = base64.b64encode(artifact.inline_data.data).decode('utf-8')
+                    image_mime_type = artifact.inline_data.mime_type
+                    print(f"INFO: Loaded artifact '{filename}' (v{version}) with MIME type {image_mime_type}")
+
+            # 2. Check for the final text response
+            if event.is_final_response() and event.content.parts:
+                if event.content.parts[0].text:
+                    response_text = event.content.parts[0].text
 
     except Exception as e:
         print(f"Error during ADK run: {e}", file=sys.stderr)
         raise HTTPException(status_code=500, detail="Error communicating with the agent.")
 
-    if not response_text:
-        raise HTTPException(status_code=500, detail="Agent did not produce a final response.")
+    # 3. Return a response if either text or an image was generated
+    if not response_text and not image_data_b64:
+        raise HTTPException(status_code=500, detail="Agent did not produce a final response or artifact.")
 
-    return {"response": response_text}
+    return ChatApiResponse(
+        response=response_text,
+        image_data=image_data_b64,
+        image_mime_type=image_mime_type
+    )
 
 @router.get("/health")
 async def health_check():

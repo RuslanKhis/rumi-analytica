@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import unicornTyping from "@/assets/unicorn-typing.png";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -38,9 +39,11 @@ const Login = () => {
       <Card className="w-full max-w-md border-border/60 shadow-[0_10px_30px_rgba(0,_0,_0,_0.08)] rounded-[28px]">
         <CardHeader className="space-y-6 pt-10 pb-6">
           <div className="flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold text-3xl shadow-[0_4px_16px_rgba(33,_150,_243,_0.3)]">
-              R
-            </div>
+            <img 
+              src={unicornTyping} 
+              alt="Unicorn" 
+              className="w-24 h-24 rounded-full object-cover shadow-[0_4px_16px_rgba(33,_150,_243,_0.3)]"
+            />
           </div>
           <div className="space-y-2">
             <CardTitle className="text-3xl text-center font-semibold tracking-tight">Welcome to Rumi Analytica</CardTitle>

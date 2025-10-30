@@ -5,7 +5,9 @@ export interface ChatRequest {
 }
 
 export interface ChatResponse {
-  response: string;
+  response: string | null;
+  image_data?: string | null;
+  image_mime_type?: string | null;
 }
 
 export const sendChatMessage = async (message: string): Promise<ChatResponse> => {

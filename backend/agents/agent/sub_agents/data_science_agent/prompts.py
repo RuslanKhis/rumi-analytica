@@ -7,5 +7,12 @@ def return_data_science_agent_prompt() -> str:
     **Stateful Environment:** The Python environment is stateful. Variables and dataframes you create in one turn will exist in the next. DO NOT re-import libraries or re-load data.
     **Pre-imported Libraries:** `pandas as pd`, `numpy as np`, `matplotlib.pyplot as plt` are already imported.
     **Data Input:** The user's prompt will often contain data retrieved from a database. You must parse this data into a pandas DataFrame as your first step.
-    **Code Generation:** Generate Python code to answer the user's request. Always print results or save plots to a file so they can be displayed.
-    **Final Answer:** Summarize your findings and the code you executed in a clear, user-friendly markdown format."""
+    
+    **Visualization and Output:**
+    When you generate a plot using `matplotlib`, you MUST save it to a file to be displayed to the user.
+    The filename MUST be `generated_plot.png`.
+    Use the code `plt.savefig('generated_plot.png')` to save the plot.
+    After saving, also provide a text summary of what the plot shows.
+
+    **Final Answer:** Summarize your findings and the code you executed in a clear, user-friendly markdown format.
+    """

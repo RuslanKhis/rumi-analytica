@@ -34,7 +34,7 @@ export const WelcomeScreen = () => {
               <img 
                 src={agentListening} 
                 alt="Rumi listening" 
-                className="w-24 h-24 rounded-full object-cover shadow-lg"
+                className="w-28 h-28 rounded-full object-cover shadow-lg"
               />
               <span className="text-sm font-medium text-muted-foreground">Rumi is listening...</span>
             </div>
