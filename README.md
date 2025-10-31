@@ -2,6 +2,142 @@
 ![Logo](/images/rumi-analytica-logo.png)
 Multi-agent analytics platform powered by Gemini and deployed on Cloud Run.
 
+## Core Problem
+
+The modern digital analytics landscape presents a series of disconnected, highly specialized challenges that prevent organizations from moving quickly from data to decision. While raw data is more accessible than ever (e.g., GA4 exports to BigQuery), the path to actionable insight is fragmented by significant skill gaps:
+
+*   **The SQL Barrier:** The people who need data most—marketers, product managers, and digital analysts—often lack the specialized SQL skills required to query complex, nested schemas like GA4's BigQuery export. This creates a dependency on data teams, leading to bottlenecks and delays.
+*   **The Data Science Gap:** Extracting data is only the first step. Performing exploratory analysis, generating visualizations, or running statistical models requires proficiency in languages like Python and its data science libraries. This skill set is typically distinct from that of a traditional analyst.
+*   **The Experimentation Hurdle:** An insight or correlation found in the data is not a validated conclusion. Designing and interpreting statistically sound experiments (like A/B tests) requires knowledge of econometrics and causal inference, a discipline that is often siloed within specialized research or data science teams.
+*   **The Implementation Chasm:** For developers and architects, tutorials and examples for building sophisticated, agent-based systems are often fragmented. There is a lack of comprehensive, end-to-end blueprints that demonstrate how to integrate a multi-agent framework with a backend, connect it to a frontend, and deploy the entire system robustly on a cloud platform like GCP with a full CI/CD pipeline.
+
+These gaps force a slow, linear, and handed-off process where a single business question requires coordination across multiple teams, stifling curiosity and agility.
+
+## Solution
+
+Rumi-Analytica is a self-deploying, multi-agent analytics platform that provides a unified solution to these fragmented challenges. It deploys a secure, conversational application on Google Cloud that empowers a single user to navigate the entire analytics workflow—from data retrieval to experimental design—through one intuitive chat interface.
+
+The solution is built on a hierarchical agent architecture where a central orchestrator, "Rumi," intelligently routes tasks to a team of specialized agents:
+
+1.  **Unified Natural Language Interface:** A user asks a question in plain English, such as *"What were our top 10 landing pages last month?"* or *"Can you run a regression on this user data?"*
+2.  **Intelligent Orchestration & Delegation:** The root agent (Rumi) analyzes the user's intent and delegates the task to the appropriate expert sub-agent:
+    *   **GA4 & BigQuery Agents (Astra & Hiroshi):** For questions about analytics data, these agents convert the request into precise, reliable SQL, execute it against your BigQuery database, and return the exact data.
+    *   **Data Science Agent (Ginger):** If the user wants to analyze or visualize the retrieved data, the task is passed to this agent, which writes and executes Python code to perform the analysis, generating tables or plots.
+    *   **Econometrics Agent (Persephone):** To validate an insight, the user can ask this agent to design an experiment. It provides a guided, step-by-step process for hypothesis formulation, power analysis, and statistical testing.
+3.  **Synthesized, Actionable Output:** The results from each agent—whether raw data, a Python-generated chart, or a detailed experimental plan—are synthesized and delivered back to the user in a single, coherent conversation.
+
+By integrating these distinct specializations into a single, conversational tool, Rumi-Analytica empowers business users and analysts to self-serve their most complex data needs with confidence. It collapses the time from question to validated insight from weeks to minutes, eliminating organizational bottlenecks. Furthermore, the repository itself serves as a production-grade, end-to-end reference architecture for building and deploying complex agentic solutions on Google Cloud.
+
+## Tech Stack
+
+This solution is built with a modern, scalable stack, leveraging Google Cloud's managed services and popular open-source frameworks for a robust, end-to-end deployment.
+
+### Backend
+
+*   **Python:** The core programming language for the application logic.
+*   **FastAPI:** A high-performance web framework used to build the secure, RESTful API backend.
+*   **Google Agent Development Kit (ADK):** The foundational framework for creating the hierarchical, multi-agent system, managing agent state, and orchestrating tool use.
+*   **Gemini (via Vertex AI):** The intelligent engine powering the agents. It is used for natural language understanding, routing, code generation, and synthesizing responses.
+*   **Vertex AI Tools:** The backend leverages a suite of Vertex AI tools, including **Vertex AI Search** for document retrieval and the **Vertex AI Code Executor** for running Python data science and econometrics code.
+
+### Frontend
+
+*   **React 18 & TypeScript:** The foundation for building a modern, type-safe, and interactive user interface.
+*   **Vite:** A next-generation frontend tooling that provides an extremely fast development server and optimized build process.
+*   **Tailwind CSS & shadcn/ui:** A utility-first CSS framework combined with a set of beautifully designed, accessible, and customizable components for a polished user experience.
+*   **TanStack Query:** Manages server state, handling data fetching, caching, and synchronization with the backend API.
+
+### Cloud & DevOps
+
+*   **Google Cloud Platform (GCP):** The entire application is designed to run on GCP.
+*   **Google Cloud Run:** Provides the serverless, scalable, and fully managed hosting environment for both the frontend and backend containerized services.
+*   **Google BigQuery:** The data warehouse that stores analytics data and serves as the primary query engine for the database agents.
+*   **Google Cloud Build:** The service that executes the automated CI/CD pipeline defined in `cloudbuild.yaml`.
+*   **Google Artifact Registry:** A secure, private repository for storing and managing the Docker images for both services.
+*   **Google Secret Manager:** Securely stores and manages sensitive information like API keys, database credentials, and JWT secrets.
+*   **Docker:** Used to package the frontend and backend applications and their dependencies into portable container images, ensuring consistent execution across all environments.
+
+## Contributors
+**Main Contributor & Project Creator:**  
+[Russ Khissami](https://www.linkedin.com/in/russ-k-b6a48a1a6/) - *Analytics Engineer*
+
+Feel free to connect if you have questions about the implementation or want to discuss AI solutions!
+
+Of course. Adding code snippets is an excellent way to make the architectural pattern concrete and easy to understand for other developers. Here is the revised section with illustrative code.
+
+***
+
+## Key Architectural Decisions
+
+The design of Rumi-Analytica is guided by several key architectural decisions that enable its power and serve as a reference for building production-grade agentic systems.
+
+### 1. Integrating ADK with a Custom FastAPI Backend
+
+A primary goal of this project is to demonstrate how to move beyond standalone agent scripts. While the Google Agent Development Kit (ADK) provides powerful tools for building agents, most tutorials demonstrate its use via the built-in `adk run` command, which launches a simple, self-contained UI. This leaves a significant gap for developers aiming to integrate agentic logic into a production-grade, custom API backend.
+
+This application deliberately treats the ADK as a library within a standard FastAPI application. The key to this integration is the `google.adk.runtime.Runner` class. The architecture follows a clean separation of concerns, as illustrated in the `main.py` file.
+
+**1. API Layer (FastAPI):** First, we define a standard FastAPI endpoint. It handles HTTP-specific concerns like routing, request validation (using Pydantic models), and security (using JWT-based dependency injection).
+
+```python
+# main.py
+
+@app.post("/api/chat")
+async def chat(
+    request: ChatRequest,
+    current_user: User = Depends(get_current_user),
+):
+    # Agent logic will be invoked here
+    ...
+```
+
+**2. Programmatic Invocation:** Inside the endpoint, instead of serving a UI, we instantiate the `Runner` and programmatically execute the agent with the user's message. The user's identity is used to maintain a distinct conversational session.
+
+```python
+# main.py (inside the /api/chat endpoint)
+
+    # Instantiate the Runner for the root agent
+    runner = Runner(
+        agent=root_agent,
+        session_service=session_service,
+        session_id=current_user.username,  # Use username for session state
+    )
+
+    # Programmatically execute the agent workflow
+    final_response = await runner.run(request.message)
+```
+
+**3. Post-Processing and Response Formatting:** The FastAPI endpoint receives the final result from the runner. This allows for powerful post-processing logic before sending a standard JSON response to the client. Here, we check if a sub-agent (like the Data Science agent) created an image artifact, encode it, and include it in the response.
+
+```python
+# mainpy (continued inside the /api/chat endpoint)
+
+    response_text = final_response.output
+    image_data = None
+    image_mime_type = None
+
+    # Check if an image artifact was created
+    if os.path.exists("generated_plot.png"):
+        with open("generated_plot.png", "rb") as f:
+            image_data = base64.b64encode(f.read()).decode("utf-8")
+        image_mime_type = "image/png"
+        os.remove("generated_plot.png") # Clean up the file
+
+    # Return a standard JSON response to the client
+    return {
+        "response": response_text,
+        "image_data": image_data,
+        "image_mime_type": image_mime_type,
+    }
+```
+
+This pattern provides several critical advantages:
+
+*   **Decoupling and Control:** It cleanly separates the web framework (FastAPI) from the agent framework (ADK). The API layer handles all web-related concerns, while the ADK focuses purely on the conversational logic.
+*   **Production-Ready Architecture:** It allows the agent system to be deployed as part of a robust, scalable backend with proper authentication, error handling, and logging.
+*   **Frontend Agnostic:** By exposing the agent via a standard REST API, the system is not tied to any specific UI. It can be consumed by our React app, a mobile application, or any other client.
+*   **Extensibility:** The FastAPI layer acts as a powerful intermediary. It can enrich requests before they reach the agent or, as demonstrated with image handling, process the agent's output before it's sent to the user.
+
 TODO:
 + need to provide discovery Engine Viewer to service account & enable  Cloud Resource Manager API  on the project
 
@@ -9,13 +145,22 @@ TODO:
 
 Follow these steps to deploy the application to your own Google Cloud project.
 
+### Prerequisites
+
+Before you begin, ensure you have the following:
+
+1.  **GitHub Account**: To fork this repository.
+2.  **Google Cloud Project**:
+    *   A GCP project with **Billing enabled**.
+    *   Your user account must have the `Owner` or `Editor` IAM role.
+
 ### Step 1: Fork and Clone the Repository
 
 1. **Fork** this repository to your own GitHub account by clicking the "Fork" button at the top right of the page.
 
 
-## Creating Cloud Build Triggers
-### Connect GitHub to Google Cloud Build
+### Creating Cloud Build Triggers
+#### Connect GitHub to Google Cloud Build
 
 This one-time setup authorizes your Google Cloud project to access your GitHub repository, which is required for the automated CI/CD pipeline.
 
