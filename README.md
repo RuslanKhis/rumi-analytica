@@ -63,9 +63,6 @@ This solution is built with a modern, scalable stack, leveraging Google Cloud's 
 
 Feel free to connect if you have questions about the implementation or want to discuss AI solutions!
 
-Of course. Adding code snippets is an excellent way to make the architectural pattern concrete and easy to understand for other developers. Here is the revised section with illustrative code.
-
-
 ## Architecture
 
 The application's architecture is designed for modularity, security, and scalability. It is composed of two primary workflows: the real-time **User Interaction Flow**, which handles the conversational experience, and the automated **CI/CD Deployment Flow**, which manages code deployment.
