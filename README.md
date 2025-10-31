@@ -32,7 +32,7 @@ This one-time setup authorizes your Google Cloud project to access your GitHub r
 
 ## Detailed Explanation of Components
 
-### Frontend Documentation
+## Frontend Documentation
 
 #### Technology Stack
 
@@ -247,3 +247,155 @@ npm run build
 
 #### Environment Variables
 - `VITE_BACKEND_URL` - Backend API base URL (optional, defaults to localhost:8000)
+
+## Backend Documentation
+Rumi Analytica - Application Documentation
+
+## 1. Project Overview
+
+**Rumi Analytica** is a sophisticated, multi-agent application designed for advanced data analysis and insight generation. Built using the Google Agent Development Kit (ADK), it employs a hierarchical agent architecture where a central orchestrator, "Rumi," intelligently delegates tasks to a team of specialized sub-agents.
+
+Each sub-agent is an expert in a specific domain, such as web search, database querying, data science, econometrics, document analysis, and Google Analytics. This modular design allows the system to handle a wide variety of user requests, from simple knowledge lookups to complex statistical modeling and data visualization.
+
+The application is served via a secure FastAPI backend, providing a robust API for user interaction and handling both text and image-based outputs.
+
+## 2. System Architecture
+
+The application follows an orchestrator-worker pattern.
+
+*   **Root Agent (Orchestrator):** The main agent, `rumi_analytica`, acts as the central router. It analyzes the user's initial request and, based on detailed instructions in its prompt, selects the appropriate sub-agent for the task. It is also responsible for synthesizing the final response to the user, often personalizing it based on which sub-agent was called.
+
+*   **Sub-Agents (Workers):** A collection of specialized agents, each with a unique persona and a dedicated set of tools and instructions.
+
+| Agent Name | Persona | Directory | Purpose |
+| :--- | :--- | :--- | :--- |
+| `root_agent` | Rumi | `agents/agent` | Orchestrates tasks and routes requests to the correct sub-agent. |
+| `web_search_agent` | Meruferat | `sub_agents/web_search_agent` | Answers general knowledge and current events questions using Google Search. |
+| `database_agent` | Hiroshi | `sub_agents/bigquery_agent` | A BigQuery SQL expert that converts natural language to SQL and queries the database. |
+| `ga4_template_agent`| Astra | `sub_agents/ga4_bigquery_agent` | A Google Analytics 4 specialist that uses predefined query templates to answer GA4 questions. |
+| `data_science_agent`| Ginger | `sub_agents/data_science_agent`| A Python data scientist that performs data analysis, manipulation, and visualization. |
+| `document_agent` | Candy | `sub_agents/document_agent` | A document specialist that answers questions based on a specific corpus of text using Vertex AI Search. |
+| `econometrics_agent`| Persephone | `sub_agents/econometrics_agent`| An econometrician that guides users through rigorous statistical analysis and experimentation. |
+
+## 3. File Structure
+
+The project is organized into a `backend` directory containing the FastAPI server and the agent logic.
+
+```
+RUMI-ANALYTICA/
+├── backend/
+│   ├── agents/
+│   │   ├── agent/                 # Root Agent (Orchestrator)
+│   │   │   ├── agent.py
+│   │   │   ├── prompts.py
+│   │   │   └── tools.py
+│   │   └── sub_agents/            # Specialized Worker Agents
+│   │       ├── bigquery_agent/
+│   │       ├── data_science_agent/
+│   │       ├── document_agent/
+│   │       ├── econometrics_agent/
+│   │       ├── ga4_bigquery_agent/
+│   │       └── web_search_agent/
+│   ├── utils/
+│   │   └── utils.py
+│   └── main.py                    # FastAPI Server Entrypoint
+├── .env                           # Environment variables
+├── .gitignore
+├── Dockerfile
+├── requirements.txt
+└── ...
+```
+
+## 4. Core Components
+
+### 4.1. FastAPI Backend (`main.py`)
+
+This file is the main entry point for the application. It sets up a FastAPI server to handle user interactions.
+
+*   **Authentication:** Implements JWT-based authentication. A `/token` endpoint validates user credentials (username and a bcrypt-hashed password) and issues an access token. All other API endpoints are protected.
+*   **CORS:** Configured to allow requests from specified frontend origins.
+*   **Session Management:** Uses `InMemorySessionService` from the ADK to maintain conversation history for each user.
+*   **API Endpoints:**
+    *   `POST /token`: Issues a JWT access token upon successful login.
+    *   `POST /api/chat`: The main interaction endpoint. It receives a user's message, runs it through the `root_agent` using the ADK `Runner`, and processes the agent's response.
+    *   `GET /health`: A simple health check endpoint.
+*   **Artifact Handling:** The `/api/chat` endpoint is specifically designed to handle both text and image outputs. If a sub-agent (like the `data_science_agent`) generates a plot, it is saved as an artifact. The `main.py` file loads this artifact, encodes the image data in Base64, and includes it in the JSON response alongside the text.
+
+### 4.2. Root Agent (`agents/agent/`)
+
+This is the orchestrator agent that manages the entire workflow.
+
+*   **`agent.py`**: Defines the `root_agent` using `google.adk.agents.Agent`. It is configured with its model, description, and a list of tools. These tools are Python functions that call the various sub-agents.
+*   **`prompts.py`**: Contains `return_root_agent_prompt()`, which provides the core routing logic. This prompt instructs the agent on which tool (and therefore which sub-agent) to call based on keywords and the nature of the user's question (e.g., "If the user asks about GA4... call `call_ga4_template_agent`"). It also defines the agent's personality, "Rumi."
+*   **`tools.py`**: Defines the wrapper functions (e.g., `call_data_science_agent`) that the `root_agent` uses as tools. Each function uses `AgentTool` to asynchronously run a specific sub-agent and pass the user's question to it.
+
+## 5. Sub-Agents Deep Dive
+
+### 5.1. BigQuery Agent (Hiroshi)
+
+*   **Purpose:** Acts as a general-purpose Natural-Language-to-SQL agent for a BigQuery database.
+*   **Directory:** `sub_agents/bigquery_agent/`
+*   **Core Logic:**
+    1.  It first uses the `initial_bq_nl2sql` tool to generate a "best-effort" SQL query from the user's question using an LLM. This tool fetches the database schema to provide context to the LLM.
+    2.  It then uses the ADK's built-in `execute_sql` tool from the `BigQueryToolset` to validate and run the generated query.
+    3.  The agent is instructed to iterate if the SQL fails, regenerating the query to fix the error.
+    4.  The final output is a structured JSON object containing an explanation, the final SQL, the raw results, and a natural language summary.
+
+### 5.2. GA4 BigQuery Agent (Astra)
+
+*   **Purpose:** A highly specialized agent for answering questions about Google Analytics 4 data stored in BigQuery.
+*   **Directory:** `sub_agents/ga4_bigquery_agent/`
+*   **Core Logic:** This agent uses a template-based approach for reliability and precision.
+    1.  **`query_template_library.py`**: Contains a dictionary (`QUERY_TEMPLATE_LIBRARY`) of predefined, parameterized SQL queries for common GA4 questions.
+    2.  **`prompts.py`**: The prompt instructs the agent to match the user's question to one of the available templates and extract the necessary parameters (like dates or campaign names).
+    3.  **`tools.py`**: Defines the `execute_ga4_template_query` tool. This tool takes the chosen template name and parameters, formats the corresponding SQL query from the library, and executes it using the ADK's `BigQueryToolset`.
+
+### 5.3. Data Science Agent (Ginger)
+
+*   **Purpose:** Executes Python code for general data analysis, manipulation, and visualization.
+*   **Directory:** `sub_agents/data_science_agent/`
+*   **Core Logic:**
+    1.  Uses the `VertexAiCodeExecutor` to run Python code in a stateful environment.
+    2.  The prompt instructs the agent to expect data to be passed in from the root agent (e.g., after being fetched by the `database_agent`). It should not generate dummy data unless explicitly asked.
+    3.  **Visualization:** When creating a plot with `matplotlib`, the agent is instructed to save it to a specific file, `generated_plot.png`. This standardized filename allows the `main.py` backend to easily find, load, and return the image to the user.
+
+### 5.4. Econometrics Agent (Persephone)
+
+*   **Purpose:** A highly specialized agent for guiding users through rigorous econometric analysis, A/B testing, and causal inference.
+*   **Directory:** `sub_agents/econometrics_agent/`
+*   **Core Logic:**
+    1.  This agent also uses the `VertexAiCodeExecutor` for statistical calculations.
+    2.  The prompt is extremely detailed, defining a multi-step workflow for experimental design and analysis:
+        *   Hypothesis Clarification
+        *   Experimental Design (A/B test, control/treatment groups)
+        *   Power Analysis & Sample Size Calculation
+        *   Data Collection Instruction (by generating SQL for the user to run)
+        *   Statistical Analysis (using Python to run z-tests or t-tests)
+        *   Interpretation and Conclusion
+
+### 5.5. Document Agent (Candy)
+
+*   **Purpose:** Answers questions based on a private corpus of documents.
+*   **Directory:** `sub_agents/document_agent/`
+*   **Core Logic:**
+    1.  Uses the `VertexAiSearchTool`, which is configured to point to a specific Vertex AI Search data store (`rumi-analytica-books_1761800267595`).
+    2.  The prompt strictly instructs the agent to base its answers *exclusively* on the information returned by the search tool and to cite its sources.
+
+### 5.6. Web Search Agent (Meruferat)
+
+*   **Purpose:** Provides answers to general knowledge questions or queries about current events.
+*   **Directory:** `sub_agents/web_search_agent/`
+*   **Core Logic:**
+    1.  This is the simplest agent, using the ADK's built-in `google_search` tool.
+    2.  The prompt instructs it to use the tool and summarize the findings for the user.
+
+## 6. Configuration & Dependencies
+
+*   **Configuration:** The application relies heavily on environment variables, which should be stored in a `.env` file. These include `GOOGLE_CLOUD_PROJECT`, BigQuery project/dataset IDs, model names, and authentication secrets (`JWT_SECRET_KEY`, etc.). The `utils/utils.py` file provides a helper for loading these variables.
+*   **Dependencies:** All required Python packages are listed in `requirements.txt`. Key dependencies include:
+    *   `google-cloud-ai-agent-development-kit`
+    *   `fastapi`
+    *   `python-jose[cryptography]`
+    *   `passlib[bcrypt]`
+    *   `uvicorn`
+    *   `python-dotenv`

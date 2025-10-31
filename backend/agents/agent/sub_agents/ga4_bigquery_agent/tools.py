@@ -1,17 +1,17 @@
 # data_science/sub_agents/ga4_template/tools.py
+
 import os
 import json
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any
 
-from google.adk.tools import tool, ToolContext
+from google.adk.tools import ToolContext
 from google.adk.tools.bigquery import BigQueryToolset
 from google.adk.tools.bigquery.config import BigQueryToolConfig, WriteMode
 
 from .query_template_library import QUERY_TEMPLATE_LIBRARY
 
-# Initialize the ADK BigQuery toolset to execute our generated query
-# This reuses the ADK's robust BigQuery connection and execution logic
+# This part remains the same
 bigquery_toolset = BigQueryToolset(
     tool_filter=["execute_sql"],
     bigquery_tool_config=BigQueryToolConfig(
@@ -28,17 +28,14 @@ def _get_default_dates():
     start_date = today - timedelta(days=8)
     return start_date.strftime("%Y%m%d"), end_date.strftime("%Y%m%d")
 
-@tool(
-    name="execute_ga4_template_query",
-    description="Executes a predefined GA4 BigQuery template to answer a user's question about Google Analytics data.",
-    args={
-        "template_name": "The name of the template to execute. Must be one of the available template names.",
-        "parameters": "A dictionary of parameters for the template, such as 'start_date', 'end_date', 'event_name', etc. Dates should be in YYYYMMDD format."
-    }
-)
+
+
 def execute_ga4_template_query(template_name: str, parameters: Dict[str, Any], tool_context: ToolContext) -> Dict:
-    """
-    Finds a SQL template, formats it with parameters, executes it, and returns the result.
+    """Executes a predefined GA4 BigQuery template to answer a user's question about Google Analytics data.
+
+    Args:
+        template_name: The name of the template to execute. Must be one of the available template names.
+        parameters: A dictionary of parameters for the template, such as 'start_date', 'end_date', 'event_name', etc. Dates should be in YYYYMMDD format.
     """
     # 1. Validate Template
     if not template_name or template_name not in QUERY_TEMPLATE_LIBRARY:
@@ -60,7 +57,6 @@ def execute_ga4_template_query(template_name: str, parameters: Dict[str, Any], t
         "start_date": parameters.get("start_date", start_def),
         "end_date": parameters.get("end_date", end_def),
     }
-    # Add any other params from the template library that were passed in
     for param_key in ["event_name", "country_name", "property_key", "campaign_name"]:
         if param_key in parameters:
             final_params[param_key] = parameters[param_key]
