@@ -399,3 +399,209 @@ This is the orchestrator agent that manages the entire workflow.
     *   `passlib[bcrypt]`
     *   `uvicorn`
     *   `python-dotenv`
+
+    # Rumi-Analytica Automated Deployment Script
+
+This documentation outlines the functionality of the `setup.sh` script, which automates the deployment of the Rumi-Analytica application to Google Cloud Platform.
+
+---
+
+## 1. Overview
+
+The script performs a complete end-to-end setup, including:
+*   Checking for prerequisite tools.
+*   Gathering user configuration.
+*   Provisioning necessary GCP resources (Service Accounts, APIs, Secrets).
+*   Building and deploying the frontend and backend services to Cloud Run.
+*   Configuring a CI/CD pipeline using Cloud Build for future deployments.
+
+---
+
+## 2. Prerequisites
+
+Before running the script, you must have the following tools installed and authenticated:
+
+*   `gcloud`: The Google Cloud SDK.
+*   `docker`: The Docker engine, which must be running.
+*   `python3`: Python 3 interpreter.
+*   `pip`: Python package installer.
+
+The script will verify their existence and exit if any are missing.
+
+---
+
+## 3. Execution
+
+Run the script from your terminal:
+
+```bash
+./setup.sh
+```
+
+---
+
+## 4. Script Workflow
+
+### Step 1: Gather User Input
+
+The script will prompt you for the following configuration details:
+
+| Prompt | Description | Example |
+| :--- | :--- | :--- |
+| **GCP Project ID** | The target Google Cloud project for deployment. | `my-gcp-project-123` |
+| **GCP Region** | The region for Cloud Run and other resources. | `us-central1` |
+| **GitHub Username** | Your username on GitHub. | `my-github-user` |
+| **GitHub Repository Name** | The name of your forked application repository. | `rumi-analytica-app` |
+| **Simple Auth Username** | A username for the backend's basic authentication. | `admin` |
+| **Simple Auth Password** | A password for the backend's basic authentication. | `(hidden input)` |
+| **BigQuery DATA Project ID** | The GCP project where your BigQuery data resides. | `my-data-project` |
+| **BigQuery Dataset ID** | The BigQuery dataset the application will query. | `analytics_dataset` |
+| **BigQuery COMPUTE Project ID**| The GCP project to bill for BigQuery jobs. | `(defaults to main Project ID)` |
+
+### Step 2: GCP Configuration & API Enablement
+
+*   Sets the active `gcloud` configuration to use the specified `PROJECT_ID`.
+*   Enables the following GCP APIs:
+    *   Cloud Run API (`run.googleapis.com`)
+    *   IAM API (`iam.googleapis.com`)
+    *   Artifact Registry API (`artifactregistry.googleapis.com`)
+    *   Cloud Build API (`cloudbuild.googleapis.com`)
+    *   Secret Manager API (`secretmanager.googleapis.com`)
+    *   Vertex AI API (`aiplatform.googleapis.com`)
+    *   BigQuery API (`bigquery.googleapis.com`)
+
+### Step 3: Service Accounts & Permissions
+
+Two service accounts are created:
+
+1.  **App Runner SA (`rumi-app-runner-sa`)**: The identity for the running Cloud Run services.
+    *   **Permissions**: Access to Vertex AI, BigQuery, and secrets in Secret Manager.
+2.  **Builder SA (`rumi-builder-sa`)**: The identity for the Cloud Build pipeline.
+    *   **Permissions**: Admin access to Cloud Run, write access to Artifact Registry, access to secrets, and the ability to act as the App Runner SA.
+
+### Step 4: Secret Creation
+
+The script creates and populates two secrets in Secret Manager:
+
+*   `RUMI_JWT_SECRET`: A randomly generated key for signing JSON Web Tokens.
+*   `RUMI_PASSWORD_HASH`: A bcrypt hash of the user-provided password.
+    *   *Note: The script temporarily installs `passlib` and `bcrypt` via `pip` to generate this hash securely.*
+
+### Step 5: Artifact Registry & Docker
+
+*   Creates a Docker repository named `rumi-analytica` in Artifact Registry.
+*   Configures the local Docker client to authenticate with this repository.
+
+### Step 6: Initial Deployment
+
+The script performs a multi-stage initial deployment:
+
+1.  **Backend Deploy**:
+    *   Builds the `backend/` Docker image.
+    *   Pushes the image to Artifact Registry.
+    *   Deploys it as a Cloud Run service named `rumi-analytica-backend`.
+    *   Injects environment variables and secrets.
+    *   Captures the assigned service URL.
+
+2.  **Frontend Deploy**:
+    *   Builds the `frontend/` application, injecting the backend URL as `VITE_BACKEND_URL`.
+    *   Builds the `frontend/` Docker image.
+    *   Pushes the image to Artifact Registry.
+    *   Deploys it as a Cloud Run service named `rumi-analytica-frontend`.
+    *   Captures the assigned service URL.
+
+3.  **Backend Update**:
+    *   Updates the `rumi-analytica-backend` service to add the `FRONTEND_URL` environment variable, enabling proper CORS configuration.
+
+### Step 7: Cloud Build Trigger
+
+*   Creates a Cloud Build trigger named `deploy-rumi-analytica-main`.
+*   Connects to the specified GitHub repository.
+*   The trigger automatically runs the `cloudbuild.yaml` file upon pushes to the `main` branch that modify files in the `backend/` or `frontend/` directories.
+
+---
+
+## 5. Post-Deployment
+
+Upon successful completion, the script will output:
+
+*   The public URL for the frontend and backend services.
+*   A confirmation that the CI/CD trigger has been created.
+*   A reminder on how to update the application password by creating a new version of the `RUMI_PASSWORD_HASH` secret.
+
+
+# Cloud Build CI/CD Pipeline (`cloudbuild.yaml`)
+
+This file defines the continuous integration and deployment (CI/CD) pipeline for the Rumi-Analytica application. It is executed by a Cloud Build trigger whenever changes are pushed to the `main` branch.
+
+---
+
+## 1. Overview
+
+The pipeline automates the process of building, testing, and deploying both the backend and frontend services to Cloud Run. It runs as a series of sequential steps, ensuring that the backend is deployed before the frontend build process begins.
+
+---
+
+## 2. Pipeline Steps
+
+The pipeline is divided into two main stages: Backend Deployment and Frontend Deployment.
+
+### Backend Steps
+
+1.  **Build Backend Image**:
+    *   Uses the standard Docker builder (`gcr.io/cloud-builders/docker`).
+    *   Executes `docker build` within the `backend/` directory.
+    *   Tags the resulting image for upload to Artifact Registry.
+
+2.  **Push Backend Image**:
+    *   Pushes the newly built backend image to the `rumi-analytica` repository in Artifact Registry.
+
+3.  **Deploy Backend**:
+    *   Uses the Google Cloud SDK builder (`gcr.io/google.com/cloudsdktool/cloud-sdk`).
+    *   Executes `gcloud run deploy` to update the `rumi-analytica-backend` service.
+    *   Deploys the image pushed in the previous step.
+    *   Configures the service with environment variables and secrets using substitution variables provided by the trigger.
+
+### Frontend Steps
+
+1.  **Frontend NPM Install**:
+    *   Uses a Node.js builder (`node:18`).
+    *   Executes `npm ci` within the `frontend/` directory to install dependencies from the `package-lock.json` file.
+
+2.  **Frontend Build**:
+    *   Executes `npm run build` to create a production-ready build of the frontend application.
+    *   Injects the `VITE_BACKEND_URL` environment variable into the build process, using the `_BACKEND_URL` substitution variable. This ensures the frontend knows how to communicate with the backend.
+
+3.  **Build Frontend Image**:
+    *   Builds the Docker image for the frontend, which serves the static files generated in the previous step.
+
+4.  **Push Frontend Image**:
+    *   Pushes the frontend image to Artifact Registry.
+
+5.  **Deploy Frontend**:
+    *   Executes `gcloud run deploy` to update the `rumi-analytica-frontend` service with the new image.
+
+---
+
+## 3. Configuration
+
+### Substitutions
+
+Substitution variables are used to pass dynamic values from the Cloud Build trigger to the pipeline at runtime.
+
+| Variable | Description |
+| :--- | :--- |
+| `_BACKEND_URL` | The public URL of the deployed backend service. |
+| `_FRONTEND_URL` | The public URL of the deployed frontend service. |
+| `_SIMPLE_AUTH_USERNAME` | The username for the backend's simple authentication. |
+| `_GOOGLE_CLOUD_PROJECT` | The GCP Project ID where resources are located. |
+| `_GOOGLE_CLOUD_LOCATION`| The GCP region for the resources. |
+| `_BQ_DATA_PROJECT_ID` | The Project ID where the BigQuery data is stored. |
+| `_BQ_DATASET_ID` | The BigQuery Dataset ID to be queried. |
+| `_BQ_COMPUTE_PROJECT_ID`| The Project ID to bill for BigQuery jobs. |
+| `_BIGQUERY_AGENT_MODEL` | The Vertex AI model for the BigQuery agent (defaults to `gemini-1.5-flash`). |
+| `_BASELINE_NL2SQL_MODEL`| The Vertex AI model for baseline NL2SQL tasks (defaults to `gemini-1.5-flash`). |
+
+### Options
+
+*   `logging: CLOUD_LOGGING_ONLY`: This option ensures that all build logs are sent directly to Google Cloud's operations suite (Cloud Logging) and are not stored on the build worker.
