@@ -7,6 +7,30 @@ from .sub_agents.bigquery_agent.agent import database_agent
 from .sub_agents.data_science_agent.agent import data_science_agent
 from .sub_agents.document_agent.agent import document_agent
 from .sub_agents.econometrics_agent.agent import econometrics_agent
+from .sub_agents.ga4_bigquery_agent import ga4_template_agent
+
+async def call_ga4_template_agent(question: str, tool_context: ToolContext) -> str:
+    """
+    Calls the GA4 Template unicorn Russ to answer questions specifically about Google Analytics (GA4) data, such as user activity, traffic sources, or conversion events. Use this for any query related to website analytics.
+    
+    Args:
+        question: The user's natural language question about GA4 data.
+        tool_context: Shared context for state management.
+    """
+    try:
+        agent_tool = AgentTool(agent=ga4_template_agent)
+        output = await agent_tool.run_async(
+            args={"request": question},
+            tool_context=tool_context
+        )
+        
+        if output is None:
+            return "No response from the GA4 agent."
+        return str(output)
+    except Exception as e:
+        error_msg = f"Error calling GA4 agent Astra: {str(e)}"
+        print(f"[ERROR] {error_msg}", file=sys.stderr)
+        return error_msg
 
 async def call_econometrics_agent(question: str, tool_context: ToolContext) -> str:
     """ Calls the econometrics agent Persephone to answer econometrics-related questions. 
