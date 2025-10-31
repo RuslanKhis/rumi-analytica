@@ -9,7 +9,7 @@ from .prompts import return_instructions_ga4_template
 # Define the GA4 Template Agent
 ga4_template_agent = Agent(
     # Use a powerful model that is good with complex function calling
-    model=os.getenv("GA4_AGENT_MODEL", "gemini-1.5-pro-latest"),
+    model=os.getenv("GA4_AGENT_MODEL", "gemini-2.5-flash"),
     name="ga4_template_agent",
     instruction=return_instructions_ga4_template(),
     tools=[

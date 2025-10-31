@@ -12,7 +12,7 @@ root_agent = Agent(
     name="rumi_analytica",
 
     # Use an environment variable for the model, with a sensible default.
-    model=os.getenv("ANALYTICS_AGENT_MODEL", "gemini-2.5-flash"),
+    model=os.getenv("ANALYTICS_AGENT_MODEL", "gemini-2.5-pro"),
 
     # Keep complex instructions in a separate file or function for cleanliness.
     instruction=return_root_agent_prompt(),
