@@ -65,6 +65,47 @@ Feel free to connect if you have questions about the implementation or want to d
 
 Of course. Adding code snippets is an excellent way to make the architectural pattern concrete and easy to understand for other developers. Here is the revised section with illustrative code.
 
+
+## Architecture
+
+The application's architecture is designed for modularity, security, and scalability. It is composed of two primary workflows: the real-time **User Interaction Flow**, which handles the conversational experience, and the automated **CI/CD Deployment Flow**, which manages code deployment.
+
+### User Interaction Flow
+
+![User Interaction Flow Diagram](/images/architecture_rumi-analytics.png)
+
+The user interaction process is orchestrated to translate natural language into complex, multi-step analytical tasks.
+
+1.  **Authentication:** The user navigates to the frontend URL and logs in via the `/login` page. The React frontend sends the credentials to the FastAPI backend's `/token` endpoint. Upon successful validation, the backend issues a JWT, which is stored in the browser and sent with all subsequent API requests.
+2.  **Application Interface:** The authenticated user interacts with the **React** single-page application, which is served from a container on **Cloud Run**. The user submits a message through the chat interface.
+3.  **Backend Request:** The frontend sends the user's message in a POST request to the `/api/chat` endpoint on the **FastAPI** backend, which is also running as a separate service on **Cloud Run**.
+4.  **Agent Orchestration:**
+    *   The FastAPI backend receives the request and invokes the **Root Agent (Rumi)** using the Google Agent Development Kit (ADK).
+    *   Rumi, powered by **Gemini**, analyzes the user's intent and uses its configured tools to delegate the task to the appropriate specialized sub-agent.
+5.  **Sub-Agent Execution:**
+    *   The selected sub-agent executes its specific logic. For example:
+        *   The **GA4 Agent** might match the request to a predefined SQL template, populate it with parameters, and execute a query against **BigQuery**.
+        *   The **Data Science Agent** might receive data from a previous step and use the **Vertex AI Code Executor** to run Python code, generating a plot which it saves as an image file (`generated_plot.png`) in its runtime environment.
+        *   The **Web Search Agent** might use the Google Search API to find information on current events.
+6.  **Response Synthesis & Delivery:**
+    *   The sub-agent returns its result (e.g., JSON data, a success message, or an error) to the Root Agent.
+    *   The FastAPI backend intercepts the final response. If it detects that an image artifact was created, it reads the image file, encodes it into Base64, and packages it into a JSON payload along with the text response.
+    *   The backend sends this JSON object back to the React frontend.
+    *   The frontend dynamically renders the response, displaying the text as markdown and rendering the Base64 string as an image if it is present.
+
+### CI/CD Deployment Flow
+
+![CI/CD Flow Diagram](/images/ci-cd_pipeline_rumi-analytica.png)
+
+The deployment process is fully automated using a GitOps workflow managed by Google Cloud.
+
+1.  **Code Push:** A developer commits and pushes code changes to the `main` branch of the GitHub repository.
+2.  **Trigger Invocation:** The push automatically triggers the **Cloud Build** pipeline linked to the repository.
+3.  **Pipeline Execution:** Cloud Build executes the steps defined in the `cloudbuild.yaml` file:
+    *   **Build & Deploy Backend:** It builds the `backend/` Docker image, pushes it to **Artifact Registry**, and deploys the new version to the `rumi-analytica-backend` **Cloud Run** service, injecting all necessary environment variables and secrets from **Secret Manager**.
+    *   **Build & Deploy Frontend:** It then builds the `frontend/` Docker image (injecting the backend's URL as a build argument), pushes it to **Artifact Registry**, and deploys the new version to the `rumi-analytica-frontend` **Cloud Run** service.
+4.  **Service Update:** Once the pipeline completes successfully, the new versions of the frontend and backend services are live and begin serving traffic automatically.
+
 ***
 
 ## Key Architectural Decisions
