@@ -7,7 +7,7 @@ from .sub_agents.bigquery_agent.agent import database_agent
 from .sub_agents.data_science_agent.agent import data_science_agent
 from .sub_agents.document_agent.agent import document_agent
 from .sub_agents.econometrics_agent.agent import econometrics_agent
-from .sub_agents.ga4_bigquery_agent import ga4_template_agent
+from .sub_agents.ga4_bigquery_agent.agent import ga4_template_agent
 
 async def call_ga4_template_agent(question: str, tool_context: ToolContext) -> str:
     """
