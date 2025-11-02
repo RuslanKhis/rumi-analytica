@@ -19,7 +19,7 @@ bigquery_toolset = BigQueryToolset(
         max_query_result_rows=100,
     )
 )
-execute_sql_tool = bigquery_toolset.get_tool("execute_sql")
+execute_sql_tool = bigquery_toolset.get_tools("execute_sql")
 
 def _get_default_dates():
     """Returns default start and end dates (YYYYMMDD)."""
