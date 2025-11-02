@@ -197,8 +197,7 @@ Before you begin, ensure you have the following:
 1. **Fork** this repository to your own GitHub account by clicking the "Fork" button at the top right of the page.
 
 
-### Creating Cloud Build Triggers
-#### Connect GitHub to Google Cloud Build
+### Step 2: Connect GitHub to Google Cloud Build
 
 This one-time setup authorizes your Google Cloud project to access your GitHub repository, which is required for the automated CI/CD pipeline.
 
@@ -211,6 +210,47 @@ This one-time setup authorizes your Google Cloud project to access your GitHub r
 5.  On the next screen, you may be prompted to **Install Google Cloud Build** if it's not already configured for your account. Click the install button and choose which repositories to grant access to (you can select just your forked repo).
 6.  You will be redirected back to the GCP console. Select your **GitHub Account** and the forked **Repository** from the dropdown menus.
 7.  Check the box to agree to the terms and click **Connect**.
+
+### Step 3: Run the Automated Setup from Cloud Shell
+
+This is the main setup step. You will use the Google Cloud Shell to clone your repository and run a script that provisions all the necessary cloud infrastructure and sets up the CI/CD pipeline.
+
+1. **Activate Cloud Shell**
+   In the Google Cloud Console, click the **Activate Cloud Shell** icon (`>_`) in the top-right corner. This will open a terminal pre-authenticated to your GCP account. You can also press **G** + **S**.
+
+2. **Clone Your Repository into Cloud Shell**
+   Run the following command in the Cloud Shell terminal:
+
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+   ```
+
+3. **Navigate into the Project Directory**
+
+   ```bash
+   # Replace YOUR_REPO_NAME with the actual repository name
+   cd YOUR_REPO_NAME
+   ```
+
+4. **Execute the Setup Script**
+   The `setup.sh` script will now configure your GCP project.
+
+   ```bash
+   # First, make the script executable
+   chmod +x setup.sh
+   
+   # Now, run the script
+   ./setup.sh
+   ```
+
+5. **Follow the Prompts**
+   The script will ask for the following information to configure your resources:
+
+    > **Important:** Please make sure that you have the values below entered exactly as they appear, without any spaces, as this might cause the script to fail. Furthermore, I recommend creating a .txt file with these values to input as required.
+
+The script will take several minutes to complete as it enables APIs, creates service accounts, builds the application, deploys it to Cloud Run, and configures the Cloud Build trigger.
+
+Once the script completes successfully, your CI/CD pipeline is live. **You can now close Cloud Shell.** All future development can be done from your local machine; simply push code changes to your GitHub repository's `main` branch, and Cloud Build will automatically deploy them.
 
 
 ## Detailed Explanation of Components
