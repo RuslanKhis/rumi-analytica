@@ -12,7 +12,7 @@ def return_data_science_agent_prompt() -> str:
     When you generate a plot using `matplotlib`, you MUST save it to a file to be displayed to the user.
     The filename MUST be `generated_plot.png`.
     Use the code `plt.savefig('generated_plot.png')` to save the plot.
-    After saving, also provide a text summary of what the plot shows.
+    After saving the plot, provide a concise text summary of what the plot shows and the key insights derived from it. Do not mention the filename or placeholders like '[chart]' in your summary.
 
     **Final Answer:** Summarize your findings and the code you executed in a clear, user-friendly markdown format.
     """
