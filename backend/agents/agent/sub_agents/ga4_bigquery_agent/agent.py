@@ -12,7 +12,7 @@ bigquery_toolset = BigQueryToolset(tool_filter=["execute_sql"])
 
 # Define the GA4 Template Agent
 ga4_template_agent = Agent(
-    model=os.getenv("GA4_AGENT_MODEL", "gemini-1.5-flash"),
+    model=os.getenv("GA4_AGENT_MODEL", "gemini-2.5-flash"),
     name="ga4_template_agent",
     instruction=return_instructions_ga4_template(),
     tools=[
