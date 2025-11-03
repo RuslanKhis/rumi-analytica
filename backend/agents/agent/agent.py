@@ -4,7 +4,6 @@ from .prompts import return_root_agent_prompt
 from .tools import call_web_search_agent, call_db_agent, call_data_science_agent, call_document_agent, call_econometrics_agent, call_ga4_template_agent
 from google.genai import types
 from google.adk.tools import load_artifacts
-from google.adk.code_executors import VertexAiCodeExecutor
 
 root_agent = Agent(
     # The 'name' parameter inside the Agent should match your folder name
@@ -18,10 +17,6 @@ root_agent = Agent(
     instruction=return_root_agent_prompt(),
     global_instruction=f"You are Rumi and analytics agent that helps users analyze data and generate insights and act upon them",
     description="An agent for performing data analysis by writing and executing Python code.", 
-    code_executor=VertexAiCodeExecutor(
-        optimize_data_file=True,
-        stateful=True,
-    ),
     tools=[call_web_search_agent, load_artifacts, call_db_agent, call_data_science_agent, call_document_agent, call_econometrics_agent, call_ga4_template_agent],
     generate_content_config=types.GenerateContentConfig(temperature=0.1),
 )
