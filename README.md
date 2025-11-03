@@ -176,9 +176,6 @@ This pattern provides several critical advantages:
 *   **Frontend Agnostic:** By exposing the agent via a standard REST API, the system is not tied to any specific UI. It can be consumed by our React app, a mobile application, or any other client.
 *   **Extensibility:** The FastAPI layer acts as a powerful intermediary. It can enrich requests before they reach the agent or, as demonstrated with image handling, process the agent's output before it's sent to the user.
 
-TODO:
-+ need to provide discovery Engine Viewer to service account & enable  Cloud Resource Manager API  on the project
-
 ## Deployment Guide
 
 Follow these steps to deploy the application to your own Google Cloud project.
@@ -252,6 +249,89 @@ The script will take several minutes to complete as it enables APIs, creates ser
 
 Once the script completes successfully, your CI/CD pipeline is live. **You can now close Cloud Shell.** All future development can be done from your local machine; simply push code changes to your GitHub repository's `main` branch, and Cloud Build will automatically deploy them.
 
+### Step 4 (Optional): Configure the Document Search Agent (RAG)
+
+This application includes a specialized agent, the `document_agent`, designed to perform Retrieval-Augmented Generation (RAG). This allows the application to answer questions based on your own private documents (e.g., PDFs, HTML files). The agent works by using **Vertex AI Search** to find relevant information in your documents and then uses that context to generate an answer.
+
+By default, the agent is configured with a sample dataset (i.e. few chapters of book related to digital marketing). Follow these steps to connect it to your own custom knowledge base.
+
+#### 4.1. Grant Permissions
+
+The setup script in Step 3 created a service account. You need to grant it additional permissions to enable the `Cloud Resource Manager API` and to access Vertex AI Search.
+
+1.  **Enable the Cloud Resource Manager API**:
+    *   Navigate to the **[Cloud Resource Manager API page](https://console.cloud.google.com/apis/library/cloudresourcemanager.googleapis.com)** in the GCP Console.
+    *   Ensure you are in the correct Google Cloud project.
+    *   Click the **Enable** button. If it's already enabled, you can proceed to the next step.
+
+2.  **Grant the Discovery Engine Viewer Role**:
+    *   First, you need the email address of the service account created by the setup script. You can find this in the output of the `setup.sh` script you ran earlier, or by navigating to the **[Service Accounts page](https://console.cloud.google.com/iam-admin/serviceaccounts)** in the GCP console. The email will be in the format `rumi-sa@<YOUR_PROJECT_ID>.iam.gserviceaccount.com`. Copy this email address.
+    *   Navigate to the **[IAM page](https://console.cloud.google.com/iam-admin/iam)**.
+    *   Click the **+ GRANT ACCESS** button at the top of the page.
+    *   In the **New principals** field, paste the service account email address you copied.
+    *   In the **Assign roles** field, search for and select the **`Discovery Engine Viewer`** role.
+    *   Click **Save**.
+
+#### 4.2. Prepare Your Documents in Cloud Storage
+
+1.  In the GCP Console, navigate to **Cloud Storage** > **Buckets**.
+2.  Click **Create Bucket** and give it a unique name (e.g., `my-company-docs-bucket`). Follow the prompts to create the bucket.
+3.  Once created, **upload** the PDF, HTML, or TXT files that you want the agent to search through.
+
+#### 4.3. Create a Vertex AI Search Data Store
+
+This connects Vertex AI Search to your documents so they become indexable.
+
+1.  Navigate to **Vertex AI Search** in the GCP console (you can use the top search bar; it may also be listed as "AI Applications").
+2.  If prompted, review and accept the terms and conditions and **Activate the API**.
+3.  From the left-hand navigation menu, select **Data Stores** under the "Search" section.
+4.  Click **+ NEW DATA STORE**.
+5.  On the 'Create a data store' page, find the **Cloud Storage** card and click it.
+6.  Configure the data store:
+    *   Select **Unstructured documents** as the data type.
+    *   Give your data store a name (e.g., `my-company-knowledge-base`).
+    *   For the source, select the Cloud Storage bucket you created in the previous step.
+7.  Click **Create**. Indexing will begin and may take a few minutes depending on the number and size of your documents.
+
+#### 4.4. Update the Application Code
+
+Once your data store is created and has finished indexing, you must update the application code to point to it.
+
+1.  **Get the Data Store ID**: In the Vertex AI Search **Data Stores** list, click on your newly created data store. On its details page, you will find the **Data store ID**. It will look something like `my-company-knowledge-base_1234567890123`.
+
+2.  **Update the Agent File**: In your local cloned repository, open the file `backend/agents/document_agent.py`.
+
+3.  **Change the `DATA_STORE_PATH`**: Find this line in the file:
+    ```python
+    DATA_STORE_PATH = "projects/rumi-analytica/locations/global/collections/default_collection/dataStores/rumi-analytica-books_1761800267595"
+    ```
+    Replace the data store ID at the end (`rumi-analytica-books_1761800267595`) with the new ID you just copied.
+
+4.  **Update the Agent's Instructions**: The agent's behavior is defined by its prompt. Find the `return_document_agent_prompt` function in the same file:
+    ```python
+    def return_document_agent_prompt() -> str:
+        """Return instructions for the document agent."""
+        return """
+            Your name is Candy and you are unicorn that helps users by answering questions on digital marketing based on the content of 3 chapters from a book about Digital Marketing. 
+            Namely, you have access to the content of the following chapters: 20. Tracking and Analysis 21. Conversion Optimization 22. The Future of Advertising.
+            If user asks a question related to those chapters, make sure to use `vertexai_search_tool` to search through the content of those chapters to find relevant information to answer the user's question.
+            Your final answer MUST be based EXCLUSIVELY on the information returned by the `vertexai_search_tool` tool.** Do NOT use your own general knowledge.
+            Begin your answer by citing the source document if the tool provides it.
+            """
+    ```
+    Modify the text inside the triple quotes to accurately describe your agent's persona and the content of the documents you uploaded. This is critical for the agent to function correctly.
+
+#### 4.5. Deploy the Changes
+
+After saving your code changes, commit them and push them to the `main` branch of your GitHub repository.
+
+```bash
+git add backend/agents/document_agent.py
+git commit -m "feat: Configure custom RAG agent with new data store"
+git push origin main
+```
+
+This will automatically trigger the Cloud Build pipeline, which will deploy the updated backend with your new RAG configuration. You can now ask questions related to your documents in the chat interface.
 
 ## Detailed Explanation of Components
 
