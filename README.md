@@ -21,7 +21,7 @@ The solution is built on a hierarchical agent architecture where a central orche
 
 1.  **Unified Natural Language Interface:** A user asks a question in plain English, such as *"What were our top 10 landing pages last month?"* or *"Can you run a regression on this user data?"*
 2.  **Intelligent Orchestration & Delegation:** The root agent (Rumi) analyzes the user's intent and delegates the task to the appropriate expert sub-agent:
-    *   **GA4 & BigQuery Agents (Astra & Hiroshi):** For questions about analytics data, these agents convert the request into precise, reliable SQL, execute it against your BigQuery database, and return the exact data.
+    *   **GA4 & BigQuery Agents (Zoey & Hiroshi):** For questions about analytics data, these agents convert the request into precise, reliable SQL, execute it against your BigQuery database, and return the exact data.
     *   **Data Science Agent (Ginger):** If the user wants to analyze or visualize the retrieved data, the task is passed to this agent, which writes and executes Python code to perform the analysis, generating tables or plots.
     *   **Econometrics Agent (Persephone):** To validate an insight, the user can ask this agent to design an experiment. It provides a guided, step-by-step process for hypothesis formulation, power analysis, and statistical testing.
 3.  **Synthesized, Actionable Output:** The results from each agent—whether raw data, a Python-generated chart, or a detailed experimental plan—are synthesized and delivered back to the user in a single, coherent conversation.
@@ -111,7 +111,7 @@ The design of Rumi-Analytica is guided by several key architectural decisions th
 
 ### 1. Integrating ADK with a Custom FastAPI Backend
 
-A primary goal of this project is to demonstrate how to move beyond standalone agent scripts. While the Google Agent Development Kit (ADK) provides powerful tools for building agents, most tutorials demonstrate its use via the built-in `adk run` command, which launches a simple, self-contained UI. This leaves a significant gap for developers aiming to integrate agentic logic into a production-grade, custom API backend.
+A primary goal of this project is to demonstrate how to move beyond standalone agent scripts. While the Google Agent Development Kit (ADK) provides powerful tools for building agents, most tutorials demonstrate its use via the built-in `adk web` command, which launches a simple, self-contained UI. This leaves a significant gap for developers aiming to integrate agentic logic into a production-grade, custom API backend.
 
 This application deliberately treats the ADK as a library within a standard FastAPI application. The key to this integration is the `google.adk.runtime.Runner` class. The architecture follows a clean separation of concerns, as illustrated in the `main.py` file.
 
@@ -299,7 +299,7 @@ Once your data store is created and has finished indexing, you must update the a
 
 1.  **Get the Data Store ID**: In the Vertex AI Search **Data Stores** list, click on your newly created data store. On its details page, you will find the **Data store ID**. It will look something like `my-company-knowledge-base_1234567890123`.
 
-2.  **Update the Agent File**: In your local cloned repository, open the file `backend/agents/document_agent.py`.
+2.  **Update the Agent File**: In your local cloned repository, open the file `backend/agents/agent/sub_agents/document_agent/agent.py`.
 
 3.  **Change the `DATA_STORE_PATH`**: Find this line in the file:
     ```python
@@ -574,7 +574,7 @@ The application follows an orchestrator-worker pattern.
 | `root_agent` | Rumi | `agents/agent` | Orchestrates tasks and routes requests to the correct sub-agent. |
 | `web_search_agent` | Meruferat | `sub_agents/web_search_agent` | Answers general knowledge and current events questions using Google Search. |
 | `database_agent` | Hiroshi | `sub_agents/bigquery_agent` | A BigQuery SQL expert that converts natural language to SQL and queries the database. |
-| `ga4_template_agent`| Astra | `sub_agents/ga4_bigquery_agent` | A Google Analytics 4 specialist that uses predefined query templates to answer GA4 questions. |
+| `ga4_template_agent`| Zoey | `sub_agents/ga4_bigquery_agent` | A Google Analytics 4 specialist that uses predefined query templates to answer GA4 questions. |
 | `data_science_agent`| Ginger | `sub_agents/data_science_agent`| A Python data scientist that performs data analysis, manipulation, and visualization. |
 | `document_agent` | Candy | `sub_agents/document_agent` | A document specialist that answers questions based on a specific corpus of text using Vertex AI Search. |
 | `econometrics_agent`| Persephone | `sub_agents/econometrics_agent`| An econometrician that guides users through rigorous statistical analysis and experimentation. |
@@ -643,7 +643,7 @@ This is the orchestrator agent that manages the entire workflow.
     3.  The agent is instructed to iterate if the SQL fails, regenerating the query to fix the error.
     4.  The final output is a structured JSON object containing an explanation, the final SQL, the raw results, and a natural language summary.
 
-##### 5.2. GA4 BigQuery Agent (Astra)
+##### 5.2. GA4 BigQuery Agent (Zoey)
 
 *   **Purpose:** A highly specialized agent for answering questions about Google Analytics 4 data stored in BigQuery.
 *   **Directory:** `sub_agents/ga4_bigquery_agent/`
