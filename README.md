@@ -1,6 +1,6 @@
 # rumi-analytica
 ![Logo](/images/rumi-analytica-logo.png)
-Multi-agent analytics platform powered by Gemini and deployed on Cloud Run.
+Multi-agent analytics platform built with the Google Agent Development Kit, powered by Gemini, and deployed on Cloud Run.
 
 ## Core Problem
 
@@ -335,7 +335,7 @@ This will automatically trigger the Cloud Build pipeline, which will deploy the 
 
 ## Detailed Explanation of Components
 
-## Frontend Documentation
+### Frontend Documentation
 
 #### Technology Stack
 
@@ -374,9 +374,9 @@ src/
 └── main.tsx           # Application entry point
 ```
 
-### Architecture
+#### Architecture
 
-#### Design System
+##### Design System
 The application uses a comprehensive design system defined in `index.css` with:
 - **Semantic color tokens** for consistent theming (light/dark mode support)
 - **HSL color values** for all colors
@@ -385,15 +385,15 @@ The application uses a comprehensive design system defined in `index.css` with:
 
 All components use these semantic tokens rather than hardcoded colors, ensuring consistent styling across the application.
 
-#### Component Architecture
+##### Component Architecture
 - **Presentation components** in `src/components/` handle UI rendering
 - **Page components** in `src/pages/` manage route-level logic
 - **Context providers** manage global state (authentication)
 - **Custom hooks** encapsulate reusable logic
 
-### Authentication Flow
+#### Authentication Flow
 
-#### Implementation
+##### Implementation
 Authentication is implemented using a React Context pattern (`AuthContext.tsx`) that provides:
 
 ```typescript
@@ -406,7 +406,7 @@ interface AuthContextType {
 }
 ```
 
-#### Flow
+##### Flow
 1. **Login Process**:
    - User submits credentials via `/login` page
    - `AuthContext.login()` sends POST request to `/token` endpoint (OAuth2 password flow)
@@ -427,14 +427,14 @@ interface AuthContextType {
    - Resets context state
    - Redirects to login page
 
-#### Token Management
+##### Token Management
 - Access token stored in localStorage as `access_token`
 - Token included in all API requests via `Authorization: Bearer ${token}` header
 - Session expiration handled with error responses (401) triggering automatic logout
 
-### Chat System
+#### Chat System
 
-#### Message Flow
+##### Message Flow
 
 1. **User Input** (`ChatInput.tsx`):
    - Text area with submit button
@@ -469,7 +469,7 @@ interface AuthContextType {
    - Frontend conditionally renders image if `image_data` is present
    - Text response rendered with markdown support
 
-#### Message Display (`ChatMessage.tsx`)
+##### Message Display (`ChatMessage.tsx`)
 
 **User Messages**:
 - Right-aligned with unicorn avatar
@@ -486,38 +486,38 @@ interface AuthContextType {
   - High-contrast inline code
 - **Image support**: Base64 images rendered when provided by backend
 
-#### Agent States
+##### Agent States
 The agent displays different avatars based on activity:
 - **Listening** - Default state, ready for input
 - **Thinking** - Displayed during API call (loading state)
 - **Responding** - Shows during message delivery
 
-#### Error Handling
+##### Error Handling
 - Network errors display user-friendly toast notifications
 - 401 errors trigger automatic logout and redirect
 - Session expiration handled gracefully
 - Backend errors (500) shown with error messages
 
-### Key Features
+#### Key Features
 
-#### Welcome Screen
+##### Welcome Screen
 - Displayed when no messages exist
 - Shows agent in "listening" state
 - Provides visual context for new users
 
-#### Responsive Design
+##### Responsive Design
 - Mobile-first approach with Tailwind utilities
 - Adaptive layouts for different screen sizes
 - Touch-friendly interactive elements
 
-#### Loading States
+##### Loading States
 - Skeleton loading for agent thinking state
 - Disabled input during processing
 - Visual feedback for all async operations
 
-### API Integration
+#### API Integration
 
-#### Backend Endpoints
+##### Backend Endpoints
 
 **Authentication**:
 - `POST /token` - Login with username/password (OAuth2 form data)
@@ -529,32 +529,31 @@ The agent displays different avatars based on activity:
 - Body: `{ message: string }`
 - Response: `{ response: string, image_data?: string, image_mime_type?: string }`
 
-#### Environment Configuration
+##### Environment Configuration
 Backend URL configured via environment variable:
 ```typescript
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 ```
 
-### Development
+#### Development
 
-#### Running Locally
+##### Running Locally
 ```bash
 npm install
 npm run dev
 ```
 
-#### Building for Production
+##### Building for Production
 ```bash
 npm run build
 ```
 
-#### Environment Variables
+##### Environment Variables
 - `VITE_BACKEND_URL` - Backend API base URL (optional, defaults to localhost:8000)
 
-## Backend Documentation
-Rumi Analytica - Application Documentation
+### Backend Documentation
 
-## 1. Project Overview
+#### 1. Project Overview
 
 **Rumi Analytica** is a sophisticated, multi-agent application designed for advanced data analysis and insight generation. Built using the Google Agent Development Kit (ADK), it employs a hierarchical agent architecture where a central orchestrator, "Rumi," intelligently delegates tasks to a team of specialized sub-agents.
 
@@ -562,7 +561,7 @@ Each sub-agent is an expert in a specific domain, such as web search, database q
 
 The application is served via a secure FastAPI backend, providing a robust API for user interaction and handling both text and image-based outputs.
 
-## 2. System Architecture
+#### 2. System Architecture
 
 The application follows an orchestrator-worker pattern.
 
@@ -580,7 +579,7 @@ The application follows an orchestrator-worker pattern.
 | `document_agent` | Candy | `sub_agents/document_agent` | A document specialist that answers questions based on a specific corpus of text using Vertex AI Search. |
 | `econometrics_agent`| Persephone | `sub_agents/econometrics_agent`| An econometrician that guides users through rigorous statistical analysis and experimentation. |
 
-## 3. File Structure
+#### 3. File Structure
 
 The project is organized into a `backend` directory containing the FastAPI server and the agent logic.
 
@@ -609,9 +608,9 @@ RUMI-ANALYTICA/
 └── ...
 ```
 
-## 4. Core Components
+#### 4. Core Components
 
-### 4.1. FastAPI Backend (`main.py`)
+##### 4.1. FastAPI Backend (`main.py`)
 
 This file is the main entry point for the application. It sets up a FastAPI server to handle user interactions.
 
@@ -624,7 +623,7 @@ This file is the main entry point for the application. It sets up a FastAPI serv
     *   `GET /health`: A simple health check endpoint.
 *   **Artifact Handling:** The `/api/chat` endpoint is specifically designed to handle both text and image outputs. If a sub-agent (like the `data_science_agent`) generates a plot, it is saved as an artifact. The `main.py` file loads this artifact, encodes the image data in Base64, and includes it in the JSON response alongside the text.
 
-### 4.2. Root Agent (`agents/agent/`)
+##### 4.2. Root Agent (`agents/agent/`)
 
 This is the orchestrator agent that manages the entire workflow.
 
@@ -632,9 +631,9 @@ This is the orchestrator agent that manages the entire workflow.
 *   **`prompts.py`**: Contains `return_root_agent_prompt()`, which provides the core routing logic. This prompt instructs the agent on which tool (and therefore which sub-agent) to call based on keywords and the nature of the user's question (e.g., "If the user asks about GA4... call `call_ga4_template_agent`"). It also defines the agent's personality, "Rumi."
 *   **`tools.py`**: Defines the wrapper functions (e.g., `call_data_science_agent`) that the `root_agent` uses as tools. Each function uses `AgentTool` to asynchronously run a specific sub-agent and pass the user's question to it.
 
-## 5. Sub-Agents Deep Dive
+#### 5. Sub-Agents Deep Dive
 
-### 5.1. BigQuery Agent (Hiroshi)
+##### 5.1. BigQuery Agent (Hiroshi)
 
 *   **Purpose:** Acts as a general-purpose Natural-Language-to-SQL agent for a BigQuery database.
 *   **Directory:** `sub_agents/bigquery_agent/`
@@ -644,7 +643,7 @@ This is the orchestrator agent that manages the entire workflow.
     3.  The agent is instructed to iterate if the SQL fails, regenerating the query to fix the error.
     4.  The final output is a structured JSON object containing an explanation, the final SQL, the raw results, and a natural language summary.
 
-### 5.2. GA4 BigQuery Agent (Astra)
+##### 5.2. GA4 BigQuery Agent (Astra)
 
 *   **Purpose:** A highly specialized agent for answering questions about Google Analytics 4 data stored in BigQuery.
 *   **Directory:** `sub_agents/ga4_bigquery_agent/`
@@ -653,7 +652,7 @@ This is the orchestrator agent that manages the entire workflow.
     2.  **`prompts.py`**: The prompt instructs the agent to match the user's question to one of the available templates and extract the necessary parameters (like dates or campaign names).
     3.  **`tools.py`**: Defines the `execute_ga4_template_query` tool. This tool takes the chosen template name and parameters, formats the corresponding SQL query from the library, and executes it using the ADK's `BigQueryToolset`.
 
-### 5.3. Data Science Agent (Ginger)
+##### 5.3. Data Science Agent (Ginger)
 
 *   **Purpose:** Executes Python code for general data analysis, manipulation, and visualization.
 *   **Directory:** `sub_agents/data_science_agent/`
@@ -662,7 +661,7 @@ This is the orchestrator agent that manages the entire workflow.
     2.  The prompt instructs the agent to expect data to be passed in from the root agent (e.g., after being fetched by the `database_agent`). It should not generate dummy data unless explicitly asked.
     3.  **Visualization:** When creating a plot with `matplotlib`, the agent is instructed to save it to a specific file, `generated_plot.png`. This standardized filename allows the `main.py` backend to easily find, load, and return the image to the user.
 
-### 5.4. Econometrics Agent (Persephone)
+##### 5.4. Econometrics Agent (Persephone)
 
 *   **Purpose:** A highly specialized agent for guiding users through rigorous econometric analysis, A/B testing, and causal inference.
 *   **Directory:** `sub_agents/econometrics_agent/`
@@ -676,7 +675,7 @@ This is the orchestrator agent that manages the entire workflow.
         *   Statistical Analysis (using Python to run z-tests or t-tests)
         *   Interpretation and Conclusion
 
-### 5.5. Document Agent (Candy)
+##### 5.5. Document Agent (Candy)
 
 *   **Purpose:** Answers questions based on a private corpus of documents.
 *   **Directory:** `sub_agents/document_agent/`
@@ -684,7 +683,7 @@ This is the orchestrator agent that manages the entire workflow.
     1.  Uses the `VertexAiSearchTool`, which is configured to point to a specific Vertex AI Search data store (`rumi-analytica-books_1761800267595`).
     2.  The prompt strictly instructs the agent to base its answers *exclusively* on the information returned by the search tool and to cite its sources.
 
-### 5.6. Web Search Agent (Meruferat)
+##### 5.6. Web Search Agent (Meruferat)
 
 *   **Purpose:** Provides answers to general knowledge questions or queries about current events.
 *   **Directory:** `sub_agents/web_search_agent/`
@@ -692,7 +691,7 @@ This is the orchestrator agent that manages the entire workflow.
     1.  This is the simplest agent, using the ADK's built-in `google_search` tool.
     2.  The prompt instructs it to use the tool and summarize the findings for the user.
 
-## 6. Configuration & Dependencies
+#### 6. Configuration & Dependencies
 
 *   **Configuration:** The application relies heavily on environment variables, which should be stored in a `.env` file. These include `GOOGLE_CLOUD_PROJECT`, BigQuery project/dataset IDs, model names, and authentication secrets (`JWT_SECRET_KEY`, etc.). The `utils/utils.py` file provides a helper for loading these variables.
 *   **Dependencies:** All required Python packages are listed in `requirements.txt`. Key dependencies include:
@@ -703,13 +702,13 @@ This is the orchestrator agent that manages the entire workflow.
     *   `uvicorn`
     *   `python-dotenv`
 
-    # Rumi-Analytica Automated Deployment Script
+### Rumi-Analytica Automated Deployment Script (`setup.sh`)
 
 This documentation outlines the functionality of the `setup.sh` script, which automates the deployment of the Rumi-Analytica application to Google Cloud Platform.
 
 ---
 
-## 1. Overview
+#### 1. Overview
 
 The script performs a complete end-to-end setup, including:
 *   Checking for prerequisite tools.
@@ -720,7 +719,7 @@ The script performs a complete end-to-end setup, including:
 
 ---
 
-## 2. Prerequisites
+#### 2. Prerequisites
 
 Before running the script, you must have the following tools installed and authenticated:
 
@@ -733,7 +732,7 @@ The script will verify their existence and exit if any are missing.
 
 ---
 
-## 3. Execution
+#### 3. Execution
 
 Run the script from your terminal:
 
@@ -743,9 +742,9 @@ Run the script from your terminal:
 
 ---
 
-## 4. Script Workflow
+#### 4. Script Workflow
 
-### Step 1: Gather User Input
+##### Step 1: Gather User Input
 
 The script will prompt you for the following configuration details:
 
@@ -761,7 +760,7 @@ The script will prompt you for the following configuration details:
 | **BigQuery Dataset ID** | The BigQuery dataset the application will query. | `analytics_dataset` |
 | **BigQuery COMPUTE Project ID**| The GCP project to bill for BigQuery jobs. | `(defaults to main Project ID)` |
 
-### Step 2: GCP Configuration & API Enablement
+##### Step 2: GCP Configuration & API Enablement
 
 *   Sets the active `gcloud` configuration to use the specified `PROJECT_ID`.
 *   Enables the following GCP APIs:
@@ -773,7 +772,7 @@ The script will prompt you for the following configuration details:
     *   Vertex AI API (`aiplatform.googleapis.com`)
     *   BigQuery API (`bigquery.googleapis.com`)
 
-### Step 3: Service Accounts & Permissions
+##### Step 3: Service Accounts & Permissions
 
 Two service accounts are created:
 
@@ -782,7 +781,7 @@ Two service accounts are created:
 2.  **Builder SA (`rumi-builder-sa`)**: The identity for the Cloud Build pipeline.
     *   **Permissions**: Admin access to Cloud Run, write access to Artifact Registry, access to secrets, and the ability to act as the App Runner SA.
 
-### Step 4: Secret Creation
+##### Step 4: Secret Creation
 
 The script creates and populates two secrets in Secret Manager:
 
@@ -790,12 +789,12 @@ The script creates and populates two secrets in Secret Manager:
 *   `RUMI_PASSWORD_HASH`: A bcrypt hash of the user-provided password.
     *   *Note: The script temporarily installs `passlib` and `bcrypt` via `pip` to generate this hash securely.*
 
-### Step 5: Artifact Registry & Docker
+##### Step 5: Artifact Registry & Docker
 
 *   Creates a Docker repository named `rumi-analytica` in Artifact Registry.
 *   Configures the local Docker client to authenticate with this repository.
 
-### Step 6: Initial Deployment
+##### Step 6: Initial Deployment
 
 The script performs a multi-stage initial deployment:
 
@@ -816,7 +815,7 @@ The script performs a multi-stage initial deployment:
 3.  **Backend Update**:
     *   Updates the `rumi-analytica-backend` service to add the `FRONTEND_URL` environment variable, enabling proper CORS configuration.
 
-### Step 7: Cloud Build Trigger
+##### Step 7: Cloud Build Trigger
 
 *   Creates a Cloud Build trigger named `deploy-rumi-analytica-main`.
 *   Connects to the specified GitHub repository.
@@ -824,7 +823,7 @@ The script performs a multi-stage initial deployment:
 
 ---
 
-## 5. Post-Deployment
+#### 5. Post-Deployment
 
 Upon successful completion, the script will output:
 
@@ -833,23 +832,23 @@ Upon successful completion, the script will output:
 *   A reminder on how to update the application password by creating a new version of the `RUMI_PASSWORD_HASH` secret.
 
 
-# Cloud Build CI/CD Pipeline (`cloudbuild.yaml`)
+### Cloud Build CI/CD Pipeline (`cloudbuild.yaml`)
 
 This file defines the continuous integration and deployment (CI/CD) pipeline for the Rumi-Analytica application. It is executed by a Cloud Build trigger whenever changes are pushed to the `main` branch.
 
 ---
 
-## 1. Overview
+#### 1. Overview
 
 The pipeline automates the process of building, testing, and deploying both the backend and frontend services to Cloud Run. It runs as a series of sequential steps, ensuring that the backend is deployed before the frontend build process begins.
 
 ---
 
-## 2. Pipeline Steps
+#### 2. Pipeline Steps
 
 The pipeline is divided into two main stages: Backend Deployment and Frontend Deployment.
 
-### Backend Steps
+##### Backend Steps
 
 1.  **Build Backend Image**:
     *   Uses the standard Docker builder (`gcr.io/cloud-builders/docker`).
@@ -865,7 +864,7 @@ The pipeline is divided into two main stages: Backend Deployment and Frontend De
     *   Deploys the image pushed in the previous step.
     *   Configures the service with environment variables and secrets using substitution variables provided by the trigger.
 
-### Frontend Steps
+##### Frontend Steps
 
 1.  **Frontend NPM Install**:
     *   Uses a Node.js builder (`node:18`).
@@ -886,9 +885,9 @@ The pipeline is divided into two main stages: Backend Deployment and Frontend De
 
 ---
 
-## 3. Configuration
+#### 3. Configuration
 
-### Substitutions
+##### Substitutions
 
 Substitution variables are used to pass dynamic values from the Cloud Build trigger to the pipeline at runtime.
 
@@ -905,6 +904,6 @@ Substitution variables are used to pass dynamic values from the Cloud Build trig
 | `_BIGQUERY_AGENT_MODEL` | The Vertex AI model for the BigQuery agent (defaults to `gemini-1.5-flash`). |
 | `_BASELINE_NL2SQL_MODEL`| The Vertex AI model for baseline NL2SQL tasks (defaults to `gemini-1.5-flash`). |
 
-### Options
+##### Options
 
 *   `logging: CLOUD_LOGGING_ONLY`: This option ensures that all build logs are sent directly to Google Cloud's operations suite (Cloud Logging) and are not stored on the build worker.

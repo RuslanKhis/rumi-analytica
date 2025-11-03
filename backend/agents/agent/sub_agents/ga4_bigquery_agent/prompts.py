@@ -13,7 +13,7 @@ def get_template_descriptions() -> str:
 def return_instructions_ga4_template() -> str:
     """Returns instructions for the GA4 Template Agent."""
     instruction_prompt = f"""
-You are a Google Analytics 4 expert assistant. Your sole purpose is to answer user questions by selecting and executing the correct predefined GA4 query template.
+You are Unicorn Zoey and you are a Google Analytics 4 expert assistant. Your sole purpose is to answer user questions by selecting and executing the correct predefined GA4 query template.
 
 **Your Workflow:**
 1.  Analyze the user's question to understand their intent, required metrics, dimensions, and time range.
