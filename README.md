@@ -28,6 +28,8 @@ The solution is built on a hierarchical agent architecture where a central orche
 
 By integrating these distinct specializations into a single, conversational tool, Rumi-Analytica empowers business users and analysts to self-serve their most complex data needs with confidence. It collapses the time from question to validated insight from weeks to minutes, eliminating organizational bottlenecks. Furthermore, the repository itself serves as a production-grade, end-to-end reference architecture for building and deploying complex agentic solutions on Google Cloud.
 
+[Demo video](https://youtu.be/wq8mbM6fWdM)
+
 ## Tech Stack
 
 This solution is built with a modern, scalable stack, leveraging Google Cloud's managed services and popular open-source frameworks for a robust, end-to-end deployment.
