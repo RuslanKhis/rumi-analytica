@@ -1,4 +1,4 @@
-# data_science/sub_agents/ga4_template/prompts.py
+# sub_agents/ga4_template/prompts.py
 from datetime import datetime, timezone
 from .query_template_library import QUERY_TEMPLATE_LIBRARY
 

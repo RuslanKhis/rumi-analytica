@@ -1,4 +1,4 @@
-# data_science/sub_agents/ga4_template/agent.py
+# sub_agents/ga4_template/agent.py
 import os
 from google.adk.agents import Agent
 from google.genai import types
