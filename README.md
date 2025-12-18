@@ -4,7 +4,7 @@ Multi-agent analytics platform built with the Google Agent Development Kit, powe
 
 ## Core Problem
 
-The modern digital analytics landscape presents a series of disconnected, highly specialized challenges that prevent organizations from moving quickly from data to decision. While raw data is more accessible than ever (e.g., GA4 exports to BigQuery), the path to actionable insight is fragmented by significant skill gaps:
+The modern digital analytics landscape presents a series of disconnected, highly specialized challenges that prevent organizations from moving quickly from data to decision. While raw data is more accessible than ever (e.g., GA4 exports to BigQuery), the path to actionable insight is fragmented by significant skill gaps: >
 
 *   **The SQL Barrier:** The people who need data most—marketers, product managers, and digital analysts—often lack the specialized SQL skills required to query complex, nested schemas like GA4's BigQuery export. This creates a dependency on data teams, leading to bottlenecks and delays.
 *   **The Data Science Gap:** Extracting data is only the first step. Performing exploratory analysis, generating visualizations, or running statistical models requires proficiency in languages like Python and its data science libraries. This skill set is typically distinct from that of a traditional analyst.
